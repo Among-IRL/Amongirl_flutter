@@ -5,6 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class EndGamePage extends StatefulWidget {
+  final String role;
+
+  EndGamePage(this.role);
+
   static const routeName = 'end_game';
 
   @override
@@ -12,7 +16,6 @@ class EndGamePage extends StatefulWidget {
 }
 
 class EndGamePageState extends State<EndGamePage> {
-
   @override
   void initState() {
     super.initState();
@@ -23,18 +26,17 @@ class EndGamePageState extends State<EndGamePage> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Vote"),
+          title: const Text("Fin"),
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("L'imposteur à gagné !"),
+              Text("${widget.role} à gagné !"),
             ],
           ),
         ));

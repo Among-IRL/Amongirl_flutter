@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         // RoleAllocationPage.routeName: (context) => RoleAllocationPage(null),
         // TaskPage.routeName: (context) => TaskPage(),
         VotePage.routeName: (context) => VotePage(),
-        EndGamePage.routeName: (context) => EndGamePage(),
+        // EndGamePage.routeName: (context) => EndGamePage(),
       },
       home: GameConfigPage(),
     );

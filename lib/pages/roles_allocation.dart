@@ -21,13 +21,13 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   String role = "";
+  String name = "";
 
   late Timer _timer;
   int _start = 3;
 
   @override
   void initState() {
-    print("data in 2 =${widget.game}");
     startTimer();
     whoIam();
     super.initState();
@@ -69,9 +69,15 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Création de jeu"),
+          title: const Text("Attribution des rôles"),
         ),
-        body: Center(child: Text('Votre role est $role')));
+        body: Center(child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('$name, votre role est :', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+            Text('$role', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: (role=="player") ? Colors.green: Colors.red),),
+          ],
+        )));
   }
 
   Future whoIam() async {
@@ -83,6 +89,7 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
     player['name'] == localPlayer);
     setState(() {
       role = me['role'];
+      name = me['name'];
     });
   }
 }

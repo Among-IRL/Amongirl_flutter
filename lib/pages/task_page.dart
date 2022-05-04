@@ -1,3 +1,4 @@
+import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/vote_page.dart';
 import 'package:amoungirl/widgets/text_field_decoration.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,7 +28,6 @@ class TaskPageState extends State<TaskPage> {
   @override
   void initState() {
     whoIam();
-    print("data in 3 =${widget.game}");
     setState(() {
       tasks = widget.game['rooms'];
       print("tasks in init = $tasks");
@@ -55,6 +55,12 @@ class TaskPageState extends State<TaskPage> {
               },
               icon: Icon(Icons.build),
             ),
+            IconButton(
+              onPressed: () {
+                socket.emit('win');
+              },
+              icon: Icon(Icons.emoji_events),
+            ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -74,7 +80,7 @@ class TaskPageState extends State<TaskPage> {
             // final actualValue = values[index];
             final actualTask = tasks[index];
             return Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(12.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -117,6 +123,15 @@ class TaskPageState extends State<TaskPage> {
       setState(() {
         tasks[myTask] = data;
       });
+    });
+    
+    socket.on('win', (data) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => EndGamePage(data['role']),
+        ),
+      );
     });
 
 

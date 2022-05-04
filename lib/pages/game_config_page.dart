@@ -81,40 +81,41 @@ class GameConfigPageState extends State<GameConfigPage> {
 
     socket.on('resetGame', (data) {
       setState(() {
-        players = [
-          {
-            "name": "Antony",
-            "mac":'',
-            "role": "player",
-            "report": false,
-            "isAlive": true,
-            "selected": true
-          },
-          {
-            "name": "Jonathan",
-            "mac":'',
-            "role": "player",
-            "report": false,
-            "isAlive": true,
-            "selected": true
-          },
-          {
-            "name": "Sarah",
-            "mac":'',
-            "role": "saboteur",
-            "report": false,
-            "isAlive": true,
-            "selected": false
-          },
-          {
-            "name": "Brian",
-            "mac": "0013a20041a72956",
-            "role": "player",
-            "report": false,
-            "isAlive": true,
-            "selected": true,
-          }
-        ];
+        players = data['players'];
+        // [
+        //   {
+        //     "name": "Antony",
+        //     "mac": '',
+        //     "role": "player",
+        //     "report": false,
+        //     "isAlive": true,
+        //     "selected": true
+        //   },
+        //   {
+        //     "name": "Jonathan",
+        //     "mac": '',
+        //     "role": "player",
+        //     "report": false,
+        //     "isAlive": true,
+        //     "selected": true
+        //   },
+        //   {
+        //     "name": "Sarah",
+        //     "mac": '',
+        //     "role": "saboteur",
+        //     "report": false,
+        //     "isAlive": true,
+        //     "selected": false
+        //   },
+        //   {
+        //     "name": "Brian",
+        //     "mac": "0013a20041a72956",
+        //     "role": "player",
+        //     "report": false,
+        //     "isAlive": true,
+        //     "selected": true,
+        //   }
+        // ];
       });
     });
 
@@ -125,7 +126,6 @@ class GameConfigPageState extends State<GameConfigPage> {
     });
 
     socket.on('startGame', (data) {
-
       setState(() {
         players = data['players'];
         // print("playser in start = $players");
@@ -133,7 +133,6 @@ class GameConfigPageState extends State<GameConfigPage> {
       //todo pass data
 
 
-      print("data in 1 =$data");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -147,37 +146,34 @@ class GameConfigPageState extends State<GameConfigPage> {
       setState(() {
         players = data['players'];
         allSelected = dataPlayers.every((player) => player['selected']);
-        print('all selcted = $allSelected');
       });
     });
   }
 
-  Widget buildRadioPlayers() {
-    List<Widget> playersRadio = [];
-    for (final player in players) {
-      if (!player['selected']) {
-        Widget r = Radio(
-          visualDensity: VisualDensity.compact,
-          value: player['name'],
-          groupValue: choosenPlayer,
-          onChanged: (value) {
-            setState(() {
-              choosenPlayer = value as String;
-            });
-            print("choosen player = $choosenPlayer");
-          },
-        );
-        Widget t = Text(player['name']);
-        playersRadio.add(r);
-        playersRadio.add(t);
-      }
-    }
-    return Column(
-      children: [
-        Row(
-          children: playersRadio,
-        ),
-      ],
+   buildRadioPlayers() {
+    return Expanded(
+      child: Column(
+        children:
+        players.map((player) {
+          if (!player['selected']) {
+            return RadioListTile<String>(
+              title: Text("${player['name']}"),
+              groupValue: choosenPlayer,
+              value: player['name'],
+              onChanged: (value) {
+                setState(() {
+                  choosenPlayer = value as String;
+                });
+                print("choosen player = $choosenPlayer");
+              },
+            );
+          }
+          else{
+            return Container();
+          }
+        }
+        ).toList(),
+      ),
     );
   }
 
@@ -191,7 +187,6 @@ class GameConfigPageState extends State<GameConfigPage> {
   }
 
   choosePseudo() {
-    print("choisir ce pseudo = ");
     if (choosenPlayer.isNotEmpty) {
       socket.emit('selectPlayer', {'name': choosenPlayer});
       savePlayerInStorage();
@@ -199,7 +194,6 @@ class GameConfigPageState extends State<GameConfigPage> {
   }
 
   start() {
-    print("press");
     socket.emit('startGame');
   }
 }
