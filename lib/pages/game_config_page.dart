@@ -68,10 +68,10 @@ class GameConfigPageState extends State<GameConfigPage> {
   }
 
   void initializeSocket() {
-    // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
-    //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://192.168.1.18:3000",
+    socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
         IO.OptionBuilder().setTransports(['websocket']).build());
+    // socket = IO.io("http://192.168.1.18:3000",
+    //     IO.OptionBuilder().setTransports(['websocket']).build());
 
     // socket.connect();
 
