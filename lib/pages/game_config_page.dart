@@ -13,11 +13,12 @@ class GameConfigPage extends StatefulWidget {
 class GameConfigPageState extends State<GameConfigPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
+  late IO.Socket socket;
+
   bool allSelected = false;
 
   bool choosePlayerDisabled = false;
 
-  late IO.Socket socket;
   List<dynamic> players = [];
 
   String choosenPlayer = "";
@@ -72,12 +73,7 @@ class GameConfigPageState extends State<GameConfigPage> {
     socket = IO.io("http://192.168.1.18:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
 
-    socket.connect();
-
-    socket.on('connect', (data) {
-      socket.emit('initGame');
-      print("socket connect ${socket.connected}");
-    });
+    // socket.connect();
 
     socket.on('resetGame', (data) {
       setState(() {
@@ -120,6 +116,7 @@ class GameConfigPageState extends State<GameConfigPage> {
     });
 
     socket.on('initGame', (data) {
+      print("INIT GAME");
       setState(() {
         players = data['players'];
       });

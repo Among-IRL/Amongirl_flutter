@@ -27,6 +27,7 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   void initState() {
+    print("in init state TASK");
     whoIam();
     setState(() {
       tasks = widget.game['rooms'];
@@ -52,6 +53,9 @@ class TaskPageState extends State<TaskPage> {
             IconButton(
               onPressed: () {
                 socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
+                // socket.emit('task', {'mac': '0013A20041A72957', 'status': true});
+                // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
+                // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
               },
               icon: Icon(Icons.build),
             ),
@@ -68,7 +72,12 @@ class TaskPageState extends State<TaskPage> {
           onPressed: () {
             print("report");
             socket.emit('report', {'name': pseudo});
-            Navigator.of(context).pushNamed(VotePage.routeName);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => VotePage(widget.game),
+              ),
+            );
           },
           child: Icon(Icons.campaign),
         ),
@@ -105,16 +114,13 @@ class TaskPageState extends State<TaskPage> {
   }
 
   void onSocket() {
+    print("LISTEN");
     // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
     socket = IO.io("http://192.168.1.18:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
-    socket.connect();
 
-    socket.on('connect', (data) {
-      // socket.emit('startGame');
-      print("socket connect ${socket.connected}");
-    });
+    // socket.connect();
 
     socket.on('task', (data) {
       print("data ${data}");
@@ -126,10 +132,11 @@ class TaskPageState extends State<TaskPage> {
     });
     
     socket.on('win', (data) {
+      print('data win =$data');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (BuildContext context) => EndGamePage(data['role']),
+          builder: (BuildContext context) => EndGamePage(data),
         ),
       );
     });

@@ -4,9 +4,19 @@ import 'package:amoungirl/pages/roles_allocation.dart';
 import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/pages/vote_page.dart';
 import 'package:flutter/material.dart';
+import "package:socket_io_client/socket_io_client.dart" as IO;
 
 void main() {
   runApp(const MyApp());
+
+  IO.Socket socket = IO.io("http://192.168.1.18:3000",
+      IO.OptionBuilder().setTransports(['websocket']).build());
+
+  socket.connect();
+
+  socket.on('connect', (data) {
+    print("socket connect ${socket.connected}");
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -24,7 +34,7 @@ class MyApp extends StatelessWidget {
         GameConfigPage.routeName: (context) => GameConfigPage(),
         // RoleAllocationPage.routeName: (context) => RoleAllocationPage(null),
         // TaskPage.routeName: (context) => TaskPage(),
-        VotePage.routeName: (context) => VotePage(),
+        // VotePage.routeName: (context) => VotePage(),
         // EndGamePage.routeName: (context) => EndGamePage(),
       },
       home: GameConfigPage(),
