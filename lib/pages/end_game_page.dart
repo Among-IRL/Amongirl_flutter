@@ -20,6 +20,7 @@ class EndGamePageState extends State<EndGamePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   @override
   void initState() {
+    cleanSharedPref();
     super.initState();
   }
 
