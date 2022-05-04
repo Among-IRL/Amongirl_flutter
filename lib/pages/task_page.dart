@@ -52,9 +52,9 @@ class TaskPageState extends State<TaskPage> {
           actions: [
             IconButton(
               onPressed: () {
-                socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
+                // socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
                 // socket.emit('task', {'mac': '0013A20041A72957', 'status': true});
-                // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
+                socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
                 // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
               },
               icon: Icon(Icons.build),
@@ -126,7 +126,7 @@ class TaskPageState extends State<TaskPage> {
       print("data ${data}");
       final myTask = tasks.indexWhere((task) => task['mac'] == data['mac']);
       print("mystask = $myTask");
-      setState(() {
+      setStateIfMounted(() {
         tasks[myTask] = data;
       });
     });
@@ -161,5 +161,9 @@ class TaskPageState extends State<TaskPage> {
     setState(() {
       pseudo = localPlayer!;
     });
+  }
+
+  void setStateIfMounted(f) {
+    if (mounted) setState(f);
   }
 }
