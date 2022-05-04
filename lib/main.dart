@@ -9,7 +9,7 @@ import "package:socket_io_client/socket_io_client.dart" as IO;
 void main() {
   runApp(const MyApp());
 
-  IO.Socket socket = IO.io("http://192.168.1.18:3000",
+  IO.Socket socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
       IO.OptionBuilder().setTransports(['websocket']).build());
 
   socket.connect();
