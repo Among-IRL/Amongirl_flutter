@@ -74,7 +74,10 @@ class GameConfigPageState extends State<GameConfigPage> {
       print("liste de players $players");
     });
 
-    socket.on('startGame', (data) {});
+    socket.on('startGame', (data) {
+    //todo pass data
+      Navigator.of(context).pushNamed(RoleAllocationPage.routeName);
+    });
 
     socket.on('selectPlayer', (data) {
       print("ici");
@@ -137,6 +140,6 @@ class GameConfigPageState extends State<GameConfigPage> {
   start() {
     print("press");
     socket.emit('startGame');
-    Navigator.of(context).pushNamed(RoleAllocationPage.routeName);
+
   }
 }
