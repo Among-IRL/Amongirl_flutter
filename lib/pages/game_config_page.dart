@@ -139,6 +139,7 @@ class GameConfigPageState extends State<GameConfigPage> {
     });
 
     socket.on('selectPlayer', (data) {
+      print("slect plyer ??");
       List dataPlayers = data['players'];
       setState(() {
         players = data['players'];
