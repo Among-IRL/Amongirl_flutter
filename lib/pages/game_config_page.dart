@@ -39,6 +39,15 @@ class GameConfigPageState extends State<GameConfigPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("AMOUNG IRL"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              socket.emit('resetGame');
+              print("reset");
+            },
+            icon: Icon(Icons.replay),
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -58,30 +67,82 @@ class GameConfigPageState extends State<GameConfigPage> {
   }
 
   void initializeSocket() {
-    socket = IO.io("http://10.57.29.158:3000",
+    // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
+    //     IO.OptionBuilder().setTransports(['websocket']).build());
+    socket = IO.io("http://192.168.1.18:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
+
     socket.connect();
-    print("socket connect ${socket.connected}");
 
     socket.on('connect', (data) {
       socket.emit('initGame');
+      print("socket connect ${socket.connected}");
+    });
+
+    socket.on('resetGame', (data) {
+      setState(() {
+        players = [
+          {
+            "name": "Antony",
+            "mac":'',
+            "role": "player",
+            "report": false,
+            "isAlive": true,
+            "selected": true
+          },
+          {
+            "name": "Jonathan",
+            "mac":'',
+            "role": "player",
+            "report": false,
+            "isAlive": true,
+            "selected": true
+          },
+          {
+            "name": "Sarah",
+            "mac":'',
+            "role": "saboteur",
+            "report": false,
+            "isAlive": true,
+            "selected": false
+          },
+          {
+            "name": "Brian",
+            "mac": "0013a20041a72956",
+            "role": "player",
+            "report": false,
+            "isAlive": true,
+            "selected": true,
+          }
+        ];
+      });
     });
 
     socket.on('initGame', (data) {
       setState(() {
         players = data['players'];
       });
-      print("liste de players $players");
     });
 
     socket.on('startGame', (data) {
-    //todo pass data
-      Navigator.of(context).pushNamed(RoleAllocationPage.routeName);
+
+      setState(() {
+        players = data['players'];
+        // print("playser in start = $players");
+      });
+      //todo pass data
+
+
+      print("data in 1 =$data");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => RoleAllocationPage(data),
+        ),
+      );
     });
 
     socket.on('selectPlayer', (data) {
-      print("ici");
-
       List dataPlayers = data['players'];
       setState(() {
         players = data['players'];
@@ -140,6 +201,5 @@ class GameConfigPageState extends State<GameConfigPage> {
   start() {
     print("press");
     socket.emit('startGame');
-
   }
 }
