@@ -140,6 +140,15 @@ class TaskPageState extends State<TaskPage> {
         ),
       );
     });
+    socket.on('report', (data) {
+      print('data win =$data');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => VotePage(widget.game),
+        ),
+      );
+    });
 
 
 
