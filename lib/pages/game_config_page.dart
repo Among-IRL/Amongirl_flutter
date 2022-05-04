@@ -26,6 +26,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   @override
   void initState() {
     initializeSocket();
+    socket.emit('initGame');
 
     super.initState();
   }
@@ -60,7 +61,8 @@ class GameConfigPageState extends State<GameConfigPage> {
             ),
             ElevatedButton(
                 child: Text("START GAME"),
-                onPressed: allSelected ? () => start() : null),
+                // onPressed: allSelected ? () => start() : null),
+                onPressed: () => start()),
           ],
         ),
       ),
@@ -78,40 +80,7 @@ class GameConfigPageState extends State<GameConfigPage> {
     socket.on('resetGame', (data) {
       setState(() {
         players = data['players'];
-        // [
-        //   {
-        //     "name": "Antony",
-        //     "mac": '',
-        //     "role": "player",
-        //     "report": false,
-        //     "isAlive": true,
-        //     "selected": true
-        //   },
-        //   {
-        //     "name": "Jonathan",
-        //     "mac": '',
-        //     "role": "player",
-        //     "report": false,
-        //     "isAlive": true,
-        //     "selected": true
-        //   },
-        //   {
-        //     "name": "Sarah",
-        //     "mac": '',
-        //     "role": "saboteur",
-        //     "report": false,
-        //     "isAlive": true,
-        //     "selected": false
-        //   },
-        //   {
-        //     "name": "Brian",
-        //     "mac": "0013a20041a72956",
-        //     "role": "player",
-        //     "report": false,
-        //     "isAlive": true,
-        //     "selected": true,
-        //   }
-        // ];
+
       });
     });
 
