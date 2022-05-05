@@ -53,17 +53,11 @@ class TaskPageState extends State<TaskPage> {
             IconButton(
               onPressed: () {
                 // socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
-                socket.emit('task', {'mac': '0013A20041A72957', 'status': true});
+                socket.emit('task', {'mac': 'abc', 'status': true});
                 // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
                 // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
               },
               icon: Icon(Icons.build),
-            ),
-            IconButton(
-              onPressed: () {
-                socket.emit('win');
-              },
-              icon: Icon(Icons.emoji_events),
             ),
           ],
         ),
@@ -72,12 +66,7 @@ class TaskPageState extends State<TaskPage> {
           onPressed: () {
             print("report");
             socket.emit('report', {'name': pseudo});
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (BuildContext context) => VotePage(widget.game),
-              ),
-            );
+
           },
           child: Icon(Icons.campaign),
         ),
@@ -134,7 +123,7 @@ class TaskPageState extends State<TaskPage> {
     socket.on('win', (data) {
       print('data win =$data');
       Navigator.pushReplacement(
-        (context),
+        context,
         MaterialPageRoute(
           builder: (BuildContext context) => EndGamePage(data),
         ),
@@ -142,7 +131,7 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socket.on('report', (data) {
-      print('data win =$data');
+      print('data report =$data');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -150,8 +139,9 @@ class TaskPageState extends State<TaskPage> {
         ),
       );
     });
+
     socket.on('buzzer', (data) {
-      print('data win =$data');
+      print('data buzzer =$data');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -169,7 +159,7 @@ class TaskPageState extends State<TaskPage> {
     final SharedPreferences prefs = await _prefs;
     final localPlayer = await prefs.getString("player");
     setState(() {
-      pseudo = localPlayer!;
+      pseudo = (localPlayer != null)? localPlayer : "";
     });
   }
 

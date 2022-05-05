@@ -70,8 +70,8 @@ class VotePageState extends State<VotePage> {
 
       setStateIfMounted(() {
         left = data['countDown'].toString();
+        print("LEFT = $left");
       });
-      print("LEFT = $left");
       if(data['countDown'] == 0){
         socket.clearListeners();
         Navigator.pushReplacement(
