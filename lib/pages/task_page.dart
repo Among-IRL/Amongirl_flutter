@@ -117,7 +117,7 @@ class TaskPageState extends State<TaskPage> {
     print("LISTEN");
     // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
-    IO.Socket socket = IO.io("http://10.57.29.188:3000",
+    socket = IO.io("http://10.57.29.188:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     // socket.connect();
@@ -142,6 +142,15 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socket.on('report', (data) {
+      print('data win =$data');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => VotePage(widget.game),
+        ),
+      );
+    });
+    socket.on('buzzer', (data) {
       print('data win =$data');
       Navigator.pushReplacement(
         context,
