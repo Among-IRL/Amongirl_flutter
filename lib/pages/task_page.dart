@@ -53,8 +53,8 @@ class TaskPageState extends State<TaskPage> {
             IconButton(
               onPressed: () {
                 // socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
-                // socket.emit('task', {'mac': '0013A20041A72957', 'status': true});
-                socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
+                socket.emit('task', {'mac': '0013A20041A72957', 'status': true});
+                // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
                 // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
               },
               icon: Icon(Icons.build),
@@ -115,10 +115,10 @@ class TaskPageState extends State<TaskPage> {
 
   void onSocket() {
     print("LISTEN");
-    socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
-        IO.OptionBuilder().setTransports(['websocket']).build());
-    // socket = IO.io("http://192.168.1.18:3000",
+    // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
+    IO.Socket socket = IO.io("http://10.57.29.188:3000",
+        IO.OptionBuilder().setTransports(['websocket']).build());
 
     // socket.connect();
 
@@ -134,12 +134,13 @@ class TaskPageState extends State<TaskPage> {
     socket.on('win', (data) {
       print('data win =$data');
       Navigator.pushReplacement(
-        context,
+        (context),
         MaterialPageRoute(
           builder: (BuildContext context) => EndGamePage(data),
         ),
       );
     });
+
     socket.on('report', (data) {
       print('data win =$data');
       Navigator.pushReplacement(
