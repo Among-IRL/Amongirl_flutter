@@ -61,8 +61,8 @@ class GameConfigPageState extends State<GameConfigPage> {
             ),
             ElevatedButton(
                 child: Text("START GAME"),
-                // onPressed: allSelected ? () => start() : null),
-                onPressed: () => start()),
+                onPressed: allSelected ? () => start() : null),
+                // onPressed: () => start()),
           ],
         ),
       ),

@@ -49,17 +49,17 @@ class TaskPageState extends State<TaskPage> {
     return Scaffold(
         appBar: AppBar(
           title: const Text("Liste des taches"),
-          actions: [
-            IconButton(
-              onPressed: () {
-                // socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
-                socket.emit('task', {'mac': 'abc', 'status': true});
-                // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
-                // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
-              },
-              icon: Icon(Icons.build),
-            ),
-          ],
+          // actions: [
+          //   IconButton(
+          //     onPressed: () {
+          //       // socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
+          //       socket.emit('task', {'mac': 'abc', 'status': true});
+          //       // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
+          //       // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
+          //     },
+          //     icon: Icon(Icons.build),
+          //   ),
+          // ],
         ),
         floatingActionButton: FloatingActionButton(
           elevation: 10,

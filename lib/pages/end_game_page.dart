@@ -25,14 +25,14 @@ class EndGamePageState extends State<EndGamePage> {
 
   @override
   void initState() {
-    // startTimer();
+    startTimer();
     cleanSharedPref();
     super.initState();
   }
 
   @override
   void dispose() {
-    // _timer.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
