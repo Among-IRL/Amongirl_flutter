@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:amoungirl/pages/roles_allocation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,22 +8,24 @@ import "package:socket_io_client/socket_io_client.dart" as IO;
 class GameConfigPage extends StatefulWidget {
   static const routeName = 'game_config';
 
+  const GameConfigPage({Key? key}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() => GameConfigPageState();
 }
 
 class GameConfigPageState extends State<GameConfigPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  final TextEditingController pseudoController = TextEditingController();
 
   late IO.Socket socket;
 
-  bool allSelected = false;
+  bool allReady = false;
+  bool isReady = false;
 
-  bool choosePlayerDisabled = false;
+  late String _pseudo;
 
   List<dynamic> players = [];
-
-  String choosenPlayer = "";
 
   @override
   void initState() {
@@ -40,29 +44,40 @@ class GameConfigPageState extends State<GameConfigPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("AMOUNG IRL"),
+        title: const Text("AMONG IRL"),
         actions: [
           IconButton(
             onPressed: () {
               socket.emit('resetGame');
-              print("reset");
             },
-            icon: Icon(Icons.replay),
+            icon: const Icon(Icons.replay),
           ),
         ],
       ),
       body: Center(
         child: Column(
           children: [
-            buildRadioPlayers(),
-            ElevatedButton(
-              onPressed: choosePlayerDisabled ? null : () => choosePseudo(),
-              child: Text('Choisir ce perso'),
+            buildPlayersList(),
+            TextField(
+              maxLength: 15,
+              controller: pseudoController,
+              onChanged: (newValue) {
+                setState(() {
+                  _pseudo = newValue;
+                });
+              },
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  labelText: 'Taper votre pseudo ...',
+              ),
             ),
             ElevatedButton(
-                child: Text("START GAME"),
-                onPressed: allSelected ? () => start() : null),
-                // onPressed: () => start()),
+                child: const Text("READY"),
+                onPressed: pseudoController.text.length >= 3 && !isReady ? () => choosePseudo() : null
+            ),
+            ElevatedButton(
+                child: const Text("START GAME"),
+                onPressed: allReady ? () => start() : null),
           ],
         ),
       ),
@@ -72,7 +87,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   void initializeSocket() {
     // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://10.57.29.188:3000",
+    socket = IO.io("http://192.168.11.126:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     // socket.connect();
@@ -80,6 +95,7 @@ class GameConfigPageState extends State<GameConfigPage> {
     socket.on('resetGame', (data) {
       setState(() {
         players = data['players'];
+        isReady = false;
       });
     });
 
@@ -95,7 +111,6 @@ class GameConfigPageState extends State<GameConfigPage> {
         players = data['players'];
         // print("playser in start = $players");
       });
-      //todo pass data
 
       Navigator.pushReplacement(
         context,
@@ -106,51 +121,46 @@ class GameConfigPageState extends State<GameConfigPage> {
     });
 
     socket.on('selectPlayer', (data) {
-      print("slect plyer ??");
+      print("select player");
       List dataPlayers = data['players'];
       setState(() {
         players = data['players'];
-        allSelected = dataPlayers.every((player) => player['selected']);
+        allReady = dataPlayers.length >= 4;
       });
     });
   }
 
-  buildRadioPlayers() {
+  buildPlayersList() {
     return Expanded(
-      child: Column(
-        children: players.map((player) {
-          if (!player['selected']) {
-            return RadioListTile<String>(
-              title: Text("${player['name']}"),
-              groupValue: choosenPlayer,
-              value: player['name'],
-              onChanged: (value) {
-                setState(() {
-                  choosenPlayer = value as String;
-                });
-                print("choosen player = $choosenPlayer");
-              },
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: players.length + 1,
+        itemBuilder: (BuildContext context, int index) {
+          if (index != players.length) {
+            return ListTile(
+              leading: const Icon(Icons.check),
+              title: Text(players[index]['name']),
             );
           } else {
-            return Container();
+            return const SizedBox(
+              height: 50,
+            );
           }
-        }).toList(),
+        },
       ),
     );
   }
 
   Future savePlayerInStorage() async {
     final SharedPreferences prefs = await _prefs;
-    await prefs.setString("player", choosenPlayer);
-
-    setState(() {
-      choosePlayerDisabled = true;
-    });
+    await prefs.setString("player", pseudoController.text);
   }
 
   choosePseudo() {
-    if (choosenPlayer.isNotEmpty) {
-      socket.emit('selectPlayer', {'name': choosenPlayer});
+    if (pseudoController.text.isNotEmpty) {
+      print(pseudoController.text);
+      isReady = true;
+      socket.emit('selectPlayer', {'name': pseudoController.text});
       savePlayerInStorage();
     }
   }
