@@ -1,3 +1,4 @@
+import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/vote_page.dart';
 import 'package:amoungirl/widgets/text_field_decoration.dart';
@@ -106,7 +107,7 @@ class TaskPageState extends State<TaskPage> {
     print("LISTEN");
     // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://10.57.29.188:3000",
+    socket = IO.io("http://${ip_address}:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     // socket.connect();

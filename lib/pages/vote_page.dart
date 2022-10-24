@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/widgets/text_field_decoration.dart';
 import 'package:flutter/cupertino.dart';
@@ -59,7 +60,7 @@ class VotePageState extends State<VotePage> {
   void onSocket() {
     // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://10.57.29.188:3000",
+    socket = IO.io("http://${ip_address}:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     // socket.connect();

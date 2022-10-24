@@ -1,3 +1,4 @@
+import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/game_config_page.dart';
 import 'package:amoungirl/pages/roles_allocation.dart';
@@ -11,7 +12,7 @@ void main() {
 
   // IO.Socket socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
   //     IO.OptionBuilder().setTransports(['websocket']).build());
-  IO.Socket socket = IO.io("http://10.57.29.188:3000",
+  IO.Socket socket = IO.io("http://${ip_address}:3000",
       IO.OptionBuilder().setTransports(['websocket']).build());
 
   socket.connect();

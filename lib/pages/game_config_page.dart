@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/roles_allocation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,6 +32,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   void initState() {
     initializeSocket();
     socket.emit('initGame');
+    print("inin game");
 
     super.initState();
   }
@@ -55,30 +57,35 @@ class GameConfigPageState extends State<GameConfigPage> {
         ],
       ),
       body: Center(
-        child: Column(
-          children: [
-            buildPlayersList(),
-            TextField(
-              maxLength: 15,
-              controller: pseudoController,
-              onChanged: (newValue) {
-                setState(() {
-                  _pseudo = newValue;
-                });
-              },
-              decoration: const InputDecoration(
+        child: Padding(
+          padding: const EdgeInsets.only(top:15.0, bottom: 15.0, left: 10, right: 10),
+          child: Column(
+            children: [
+              TextField(
+                maxLength: 15,
+                controller: pseudoController,
+                onChanged: (newValue) {
+                  setState(() {
+                    _pseudo = newValue;
+                  });
+                },
+                decoration: const InputDecoration(
                   border: InputBorder.none,
                   labelText: 'Taper votre pseudo ...',
+                ),
               ),
-            ),
-            ElevatedButton(
-                child: const Text("READY"),
-                onPressed: pseudoController.text.length >= 3 && !isReady ? () => choosePseudo() : null
-            ),
-            ElevatedButton(
-                child: const Text("START GAME"),
-                onPressed: allReady ? () => start() : null),
-          ],
+              Divider(),
+              buildPlayersList(),
+              ElevatedButton(
+                  child: const Text("READY"),
+                  onPressed: pseudoController.text.length >= 3 && !isReady
+                      ? () => choosePseudo()
+                      : null),
+              ElevatedButton(
+                  child: const Text("START GAME"),
+                  onPressed: allReady ? () => start() : null),
+            ],
+          ),
         ),
       ),
     );
@@ -87,7 +94,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   void initializeSocket() {
     // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://192.168.11.126:3000",
+    socket = IO.io("http://${ip_address}:3000",
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     // socket.connect();
