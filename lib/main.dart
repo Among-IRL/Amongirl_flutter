@@ -1,9 +1,5 @@
 import 'package:amoungirl/config/config.dart';
-import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/game_config_page.dart';
-import 'package:amoungirl/pages/roles_allocation.dart';
-import 'package:amoungirl/pages/task_page.dart';
-import 'package:amoungirl/pages/vote_page.dart';
 import 'package:flutter/material.dart';
 import "package:socket_io_client/socket_io_client.dart" as IO;
 

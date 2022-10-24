@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:amoungirl/config/config.dart';
@@ -58,7 +59,8 @@ class GameConfigPageState extends State<GameConfigPage> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top:15.0, bottom: 15.0, left: 10, right: 10),
+          padding: const EdgeInsets.only(
+              top: 15.0, bottom: 15.0, left: 10, right: 10),
           child: Column(
             children: [
               TextField(
@@ -129,11 +131,12 @@ class GameConfigPageState extends State<GameConfigPage> {
 
     socket.on('selectPlayer', (data) {
       print("select player");
-      List dataPlayers = data['players'];
+      List dataPlayers = data["game"]['players'];
       setState(() {
-        players = data['players'];
+        players = data['game']['players'];
         allReady = dataPlayers.length >= 4;
       });
+      savePlayerInStorage(data['currentPlayer']);
     });
   }
 
@@ -158,9 +161,11 @@ class GameConfigPageState extends State<GameConfigPage> {
     );
   }
 
-  Future savePlayerInStorage() async {
+  Future savePlayerInStorage(Map<String, dynamic> player) async {
     final SharedPreferences prefs = await _prefs;
-    await prefs.setString("player", pseudoController.text);
+    if (player['name'] == pseudoController.text) {
+      await prefs.setString("currentPlayer", json.encode(player));
+    }
   }
 
   choosePseudo() {
@@ -168,7 +173,6 @@ class GameConfigPageState extends State<GameConfigPage> {
       print(pseudoController.text);
       isReady = true;
       socket.emit('selectPlayer', {'name': pseudoController.text});
-      savePlayerInStorage();
     }
   }
 
