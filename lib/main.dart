@@ -11,7 +11,7 @@ void main() {
 
   // IO.Socket socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
   //     IO.OptionBuilder().setTransports(['websocket']).build());
-  IO.Socket socket = IO.io("http://10.57.29.188:3000",
+  IO.Socket socket = IO.io("http://192.168.193.143:3000",
       IO.OptionBuilder().setTransports(['websocket']).build());
 
   socket.connect();
