@@ -1,4 +1,3 @@
-import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/game_config_page.dart';
 import 'package:amoungirl/pages/roles_allocation.dart';
