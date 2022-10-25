@@ -101,25 +101,33 @@ class GameConfigPageState extends State<GameConfigPage> {
 
     // socket.connect();
 
-    socket.on('resetGame', (data) {
+    socket.on('resetGame', (data) async {
+      final SharedPreferences prefs = await _prefs;
+      prefs.clear();
       setState(() {
         players = data['players'];
         isReady = false;
       });
     });
 
-    socket.on('initGame', (data) {
+    socket.on('initGame', (data) async {
       print("INIT GAME");
+      final SharedPreferences prefs = await _prefs;
+      prefs.clear();
       setState(() {
         players = data['players'];
       });
     });
 
     socket.on('startGame', (data) {
+      print("data");
+      print(data);
       setState(() {
         players = data['players'];
         // print("playser in start = $players");
       });
+
+      setRoleInPrefs(data);
 
       Navigator.pushReplacement(
         context,
@@ -134,8 +142,9 @@ class GameConfigPageState extends State<GameConfigPage> {
       List dataPlayers = data["game"]['players'];
       setState(() {
         players = data['game']['players'];
-        allReady = dataPlayers.length >= 4;
+        allReady = dataPlayers.length >= 3;
       });
+      print("data == $data");
       savePlayerInStorage(data['currentPlayer']);
     });
   }
@@ -178,5 +187,19 @@ class GameConfigPageState extends State<GameConfigPage> {
 
   start() {
     socket.emit('startGame');
+  }
+
+  void setRoleInPrefs(Map<String, dynamic> data) async {
+    final SharedPreferences prefs = await _prefs;
+
+    final player = json.decode(prefs.getString("currentPlayer")!);
+    List<dynamic> players = data['players'];
+
+    final dataPlayer = players.firstWhere((element) => element['mac'] == player['mac']);
+
+    if(dataPlayer['role'] == "saboteur") {
+      player['role'] = dataPlayer['role'];
+      prefs.setString("currentPlayer", json.encode(player));
+    }
   }
 }

@@ -140,6 +140,16 @@ class VotePageState extends State<VotePage> {
         //         // );
       }
     });
+
+    socket.on('win', (data) {
+      print('data win =$data');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => EndGamePage(data),
+        ),
+      );
+    });
   }
 
   Future whoIam() async {
