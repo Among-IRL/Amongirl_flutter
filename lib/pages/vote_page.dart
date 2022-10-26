@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:amoungirl/config/config.dart';
+import 'package:amoungirl/pages/end_game_page.dart';
+import 'package:amoungirl/pages/game_config_page.dart';
 import 'package:amoungirl/pages/task_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,23 +32,35 @@ class VotePageState extends State<VotePage> {
 
   bool isVoted = false;
 
+  bool win = false;
+
+  String whoWin = "";
+
+
+  // late Timer _timer;
+  // int _start = 10;
+
   String value = "";
 
   @override
   void initState() {
     onSocket();
     whoIam();
+
     super.initState();
   }
 
   @override
   void dispose() {
     print("dispose");
+
+    // _timer.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final alivePlayers = getAlivePlayers();
     return Scaffold(
         appBar: AppBar(
           title: const Text("Vote"),
@@ -65,9 +79,9 @@ class VotePageState extends State<VotePage> {
                 Expanded(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: widget.game["players"].length,
+                    itemCount: alivePlayers.length,
                     itemBuilder: (BuildContext context, int index) {
-                      final player = widget.game["players"][index];
+                      final player = alivePlayers[index];
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -123,38 +137,67 @@ class VotePageState extends State<VotePage> {
 
     // socket.connect();
 
-    socket.on('meeting', (data) {
+    socket.on('meeting', (data) async {
       setStateIfMounted(() {
         left = data['countDown'].toString();
       });
       if (data['countDown'] == 0) {
+
         print("dernier countdown = ${data}");
 
         displayDeadPlayerModal(data['vote'], data['count']);
+
+        await Future.delayed(Duration(seconds: 5));
+        Navigator.of(context).pop();
+
+        if (win) {
+          print("on win");
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => EndGamePage(whoWin)),
+            (Route<dynamic> route) => false,
+          );
+        } else {
+          print("on win pas");
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => TaskPage(widget.game)),
+            (Route<dynamic> route) => false,
+          );
+        }
         socket.clearListeners();
-        // Navigator.pushReplacement(
-        //         //   context,
-        //         //   MaterialPageRoute(
-        //         //     builder: (BuildContext context) => TaskPage(widget.game),
-        //         //   ),
-        //         // );
       }
+
+    });
+
+
+    socket.on('deathPlayer', (dataDeath) async {
+      print("dataDeath");
+      final SharedPreferences prefs = await _prefs;
+      final currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+      if(dataDeath["mac"] == currentPlayer['mac']){
+        //TODO : je suis mort que faire ?
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (BuildContext context) => GameConfigPage(),
+        //   ),
+        // );
+      }
+
     });
 
     socket.on('win', (data) {
-      print('data win =$data');
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => EndGamePage(data),
-        ),
-      );
+      print('data win in vote page=$data');
+      setState(() {
+        win = true;
+        whoWin = data;
+      });
     });
   }
 
   Future whoIam() async {
     final SharedPreferences prefs = await _prefs;
-    print("before get player");
     setState(() {
       currentPlayer = json.decode(prefs.getString("currentPlayer")!);
     });
@@ -180,21 +223,13 @@ class VotePageState extends State<VotePage> {
               ],
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => TaskPage(widget.game),
-                  ),
-                );
-              },
-            ),
-          ],
         );
       },
     );
+  }
+
+  List<dynamic> getAlivePlayers() {
+    List<dynamic> players = widget.game["players"];
+    return players.where((player) => player['isAlive'] == true).toList();
   }
 }

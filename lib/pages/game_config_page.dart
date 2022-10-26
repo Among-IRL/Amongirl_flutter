@@ -39,6 +39,13 @@ class GameConfigPageState extends State<GameConfigPage> {
   }
 
   @override
+  void setState(fn) {
+    if(mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void dispose() {
     super.dispose();
   }
@@ -67,9 +74,11 @@ class GameConfigPageState extends State<GameConfigPage> {
                 maxLength: 15,
                 controller: pseudoController,
                 onChanged: (newValue) {
-                  setState(() {
-                    _pseudo = newValue;
-                  });
+                  if(mounted) {
+                    setState(() {
+                      _pseudo = newValue;
+                    });
+                  }
                 },
                 decoration: const InputDecoration(
                   border: InputBorder.none,
@@ -104,49 +113,61 @@ class GameConfigPageState extends State<GameConfigPage> {
     socket.on('resetGame', (data) async {
       final SharedPreferences prefs = await _prefs;
       prefs.clear();
-      setState(() {
-        players = data['players'];
-        isReady = false;
-      });
+      if(mounted) {
+        setState(() {
+          players = data['players'];
+          isReady = false;
+        });
+      }
     });
 
     socket.on('initGame', (data) async {
       print("INIT GAME");
       final SharedPreferences prefs = await _prefs;
       prefs.clear();
-      setState(() {
-        players = data['players'];
-      });
+      print(prefs);
+      if(mounted){
+        setState(() {
+          players = data['players'];
+        });
+      }
+
     });
 
     socket.on('startGame', (data) {
       print("data");
       print(data);
-      setState(() {
-        players = data['players'];
-        // print("playser in start = $players");
-      });
+      if(mounted) {
+        setState(() {
+          players = data['players'];
+          // print("playser in start = $players");
+        });
+      }
 
       setRoleInPrefs(data);
 
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => RoleAllocationPage(data),
-        ),
+        MaterialPageRoute(builder: (context) => RoleAllocationPage(data)),
+            (Route<dynamic> route) => false,
       );
+
     });
 
     socket.on('selectPlayer', (data) {
       print("select player");
       List dataPlayers = data["game"]['players'];
-      setState(() {
-        players = data['game']['players'];
-        allReady = dataPlayers.length >= 3;
-      });
+      if(mounted){
+        setState(() {
+          players = data['game']['players'];
+          allReady = dataPlayers.length >= 3;
+        });
+      }
+
       print("data == $data");
       savePlayerInStorage(data['currentPlayer']);
     });
+
   }
 
   buildPlayersList() {

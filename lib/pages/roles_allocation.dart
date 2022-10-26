@@ -46,9 +46,10 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) {
+        print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
-            print("timer done");
+            print("timer role done");
 
             Navigator.pushReplacement(
               context,

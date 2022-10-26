@@ -212,22 +212,21 @@ class TaskPageState extends State<TaskPage> {
       });
     });
 
-    socket.on('win', (data) {
-      print('data win =$data');
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => EndGamePage(data),
-        ),
-      );
-    });
+    // socket.on('win', (data) {
+    //   print('data win =$data');
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (BuildContext context) => EndGamePage(data),
+    //     ),
+    //   );
+    // });
 
     socket.on('report', (data) {
-      print('data report =$data');
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (BuildContext context) => VotePage(widget.game),
+          builder: (BuildContext context) => VotePage(data),
         ),
       );
     });
@@ -241,7 +240,7 @@ class TaskPageState extends State<TaskPage> {
 
     socket.on('buzzer', (data) {
       print('data buzzer =$data');
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (BuildContext context) => VotePage(widget.game),
