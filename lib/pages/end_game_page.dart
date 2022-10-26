@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/game_config_page.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import "package:socket_io_client/socket_io_client.dart" as IO;
+import '../services/socket_io_client.dart';
 
 class EndGamePage extends StatefulWidget {
   final String role;
@@ -22,7 +21,7 @@ class EndGamePage extends StatefulWidget {
 class EndGamePageState extends State<EndGamePage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
-  late IO.Socket socket;
+  SocketIoClient socketIoClient = SocketIoClient();
 
   late Timer _timer;
   int _start = 5;
@@ -88,11 +87,6 @@ class EndGamePageState extends State<EndGamePage> {
   }
 
   void onSocket() {
-    // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
-    //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://$ip_address:3000",
-        IO.OptionBuilder().setTransports(['websocket']).build());
-
-    socket.clearListeners();
+    socketIoClient.socket.clearListeners();
   }
 }

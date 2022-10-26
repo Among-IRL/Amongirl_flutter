@@ -1,20 +1,16 @@
 import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/game_config_page.dart';
+import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/material.dart';
-import "package:socket_io_client/socket_io_client.dart" as IO;
 
 void main() {
   runApp(const MyApp());
+  SocketIoClient socketIoClient = SocketIoClient();
 
-  // IO.Socket socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
-  //     IO.OptionBuilder().setTransports(['websocket']).build());
-  IO.Socket socket = IO.io("http://${ip_address}:3000",
-      IO.OptionBuilder().setTransports(['websocket']).build());
+  socketIoClient.socket.connect();
 
-  socket.connect();
-
-  socket.on('connect', (data) {
-    print("socket connect ${socket.connected}");
+  socketIoClient.socket.on('connect', (data) {
+    print("socket connect ${socketIoClient.socket.connected}");
   });
 }
 

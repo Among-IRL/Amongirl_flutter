@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import "package:socket_io_client/socket_io_client.dart" as IO;
+
+import '../services/socket_io_client.dart';
 
 class TaskLoadingPage extends StatefulWidget {
-
-  // final Map<String, dynamic> game;
-  //
-  //
-  // TaskLoadingPage(this.game);
 
   static const routeName = 'taskLoadingPage';
 
@@ -15,7 +11,7 @@ class TaskLoadingPage extends StatefulWidget {
 }
 
 class TaskLoadingPageState extends State<TaskLoadingPage> {
-  late IO.Socket socket;
+  SocketIoClient socketIoClient = SocketIoClient();
 
   String left = "10";
   bool isTimerFinished = true;
@@ -61,15 +57,7 @@ class TaskLoadingPageState extends State<TaskLoadingPage> {
   }
 
   void onSocket() {
-    // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
-    //     IO.OptionBuilder().setTransports(['websocket']).build());
-    //
-    // socket = IO.io("http://10.57.29.188:3000",
-    //     IO.OptionBuilder().setTransports(['websocket']).build());
-
-    // socket.connect();
-
-    // socket.on('meeting', (data) {
+    // socketIoClient.socket.on('meeting', (data) {
     //   print("toto");
     //   print("data in meeting $data");
     //

@@ -8,7 +8,8 @@ import 'package:amoungirl/pages/vote_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import "package:socket_io_client/socket_io_client.dart" as IO;
+
+import '../services/socket_io_client.dart';
 
 class TaskPage extends StatefulWidget {
   final Map<String, dynamic> game;
@@ -23,7 +24,7 @@ class TaskPage extends StatefulWidget {
 
 class TaskPageState extends State<TaskPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  late IO.Socket socket;
+  SocketIoClient socketIoClient = SocketIoClient();
   List<dynamic> globalTasks = [];
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
@@ -83,7 +84,7 @@ class TaskPageState extends State<TaskPage> {
                 //   blur = true;
                 // });
                 // startSabotageTimer();
-                socket.emit('sabotage', {'isSabotage': true});
+                socketIoClient.socket.emit('sabotage', {'isSabotage': true});
               },
               child: const Icon(Icons.settings),
             ),
@@ -107,7 +108,7 @@ class TaskPageState extends State<TaskPage> {
               elevation: 10,
               onPressed: () {
                 print("report");
-                socket.emit('report', {'name': currentPlayer['name']});
+                socketIoClient.socket.emit('report', {'name': currentPlayer['name']});
               },
               child: const Icon(Icons.campaign),
             ),
@@ -195,14 +196,7 @@ class TaskPageState extends State<TaskPage> {
 
   void onSocket() {
     print("LISTEN");
-    // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
-    //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://${ip_address}:3000",
-        IO.OptionBuilder().setTransports(['websocket']).build());
-
-    // socket.connect();
-
-    socket.on('task', (data) {
+    socketIoClient.socket.on('task', (data) {
       print("data ${data}");
       final myTask =
       globalTasks.indexWhere((task) => task['mac'] == data['mac']);
@@ -222,7 +216,7 @@ class TaskPageState extends State<TaskPage> {
     //   );
     // });
 
-    socket.on('report', (data) {
+    socketIoClient.socket.on('report', (data) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -231,14 +225,14 @@ class TaskPageState extends State<TaskPage> {
       );
     });
 
-    socket.on('sabotage', (data) {
+    socketIoClient.socket.on('sabotage', (data) {
       print("sabotage");
       setState(() {
         blur = data;
       });
     });
 
-    socket.on('buzzer', (data) {
+    socketIoClient.socket.on('buzzer', (data) {
       print('data buzzer =$data');
       Navigator.push(
         context,

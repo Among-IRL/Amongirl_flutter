@@ -5,7 +5,8 @@ import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/roles_allocation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import "package:socket_io_client/socket_io_client.dart" as IO;
+
+import '../services/socket_io_client.dart';
 
 class GameConfigPage extends StatefulWidget {
   static const routeName = 'game_config';
@@ -20,7 +21,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   final TextEditingController pseudoController = TextEditingController();
 
-  late IO.Socket socket;
+  SocketIoClient socketIoClient = SocketIoClient();
 
   bool allReady = false;
   bool isReady = false;
@@ -32,7 +33,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   @override
   void initState() {
     initializeSocket();
-    socket.emit('initGame');
+    socketIoClient.socket.emit('initGame');
     print("inin game");
 
     super.initState();
@@ -58,7 +59,7 @@ class GameConfigPageState extends State<GameConfigPage> {
         actions: [
           IconButton(
             onPressed: () {
-              socket.emit('resetGame');
+              socketIoClient.socket.emit('resetGame');
             },
             icon: const Icon(Icons.replay),
           ),
@@ -103,14 +104,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   }
 
   void initializeSocket() {
-    // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
-    //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://${ip_address}:3000",
-        IO.OptionBuilder().setTransports(['websocket']).build());
-
-    // socket.connect();
-
-    socket.on('resetGame', (data) async {
+    socketIoClient.socket.on('resetGame', (data) async {
       final SharedPreferences prefs = await _prefs;
       prefs.clear();
       if(mounted) {
@@ -121,7 +115,7 @@ class GameConfigPageState extends State<GameConfigPage> {
       }
     });
 
-    socket.on('initGame', (data) async {
+    socketIoClient.socket.on('initGame', (data) async {
       print("INIT GAME");
       final SharedPreferences prefs = await _prefs;
       prefs.clear();
@@ -134,7 +128,7 @@ class GameConfigPageState extends State<GameConfigPage> {
 
     });
 
-    socket.on('startGame', (data) {
+    socketIoClient.socket.on('startGame', (data) {
       print("data");
       print(data);
       if(mounted) {
@@ -154,7 +148,7 @@ class GameConfigPageState extends State<GameConfigPage> {
 
     });
 
-    socket.on('selectPlayer', (data) {
+    socketIoClient.socket.on('selectPlayer', (data) {
       print("select player");
       List dataPlayers = data["game"]['players'];
       if(mounted){
@@ -202,12 +196,12 @@ class GameConfigPageState extends State<GameConfigPage> {
     if (pseudoController.text.isNotEmpty) {
       print(pseudoController.text);
       isReady = true;
-      socket.emit('selectPlayer', {'name': pseudoController.text});
+      socketIoClient.socket.emit('selectPlayer', {'name': pseudoController.text});
     }
   }
 
   start() {
-    socket.emit('startGame');
+    socketIoClient.socket.emit('startGame');
   }
 
   void setRoleInPrefs(Map<String, dynamic> data) async {

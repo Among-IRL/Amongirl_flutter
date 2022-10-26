@@ -8,7 +8,8 @@ import 'package:amoungirl/pages/task_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import "package:socket_io_client/socket_io_client.dart" as IO;
+
+import '../services/socket_io_client.dart';
 
 class VotePage extends StatefulWidget {
   final Map<String, dynamic> game;
@@ -22,7 +23,7 @@ class VotePage extends StatefulWidget {
 }
 
 class VotePageState extends State<VotePage> {
-  late IO.Socket socket;
+  SocketIoClient socketIoClient = SocketIoClient();
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   Map<String, dynamic> currentPlayer = {};
 
@@ -60,6 +61,9 @@ class VotePageState extends State<VotePage> {
 
   @override
   Widget build(BuildContext context) {
+    if(currentPlayer.isEmpty){
+      return Container();
+    }
     final alivePlayers = getAlivePlayers();
     return Scaffold(
         appBar: AppBar(
@@ -88,18 +92,21 @@ class VotePageState extends State<VotePage> {
                           SizedBox(
                             height: 50,
                             width: MediaQuery.of(context).size.width * 0.8,
-                            child: RadioListTile(
+                            child: currentPlayer['isAlive'] ? RadioListTile(
                               title: Text(player['name']),
                               value: player,
                               groupValue: playerVoted,
                               onChanged: (dynamic value) {
                                 if (isVoted) {
-                                  return null;
+                                  return;
                                 }
                                 setState(() {
                                   playerVoted = value;
                                 });
                               },
+                            )
+                              : ListTile(
+                                title: Text(player['name'])
                             ),
                           )
                         ],
@@ -111,18 +118,19 @@ class VotePageState extends State<VotePage> {
                 isVoted
                     ? Text('Vous avez voter pour ${playerVoted['name']}')
                     : Container(),
+                currentPlayer['isAlive'] ?
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: !isVoted ? () {
                     setState(() {
                       isVoted = true;
                     });
-                    socket.emit('vote', {
+                    socketIoClient.socket.emit('vote', {
                       'macFrom': currentPlayer['mac'],
                       'macTo': playerVoted['mac']
                     });
-                  },
+                  } : null,
                   child: Text('VOTER'),
-                ),
+                ) : Container(),
               ],
             ),
           ),
@@ -132,15 +140,12 @@ class VotePageState extends State<VotePage> {
   void onSocket() {
     // socket = IO.io("https://amoung-irl-server-game.herokuapp.com/",
     //     IO.OptionBuilder().setTransports(['websocket']).build());
-    socket = IO.io("http://${ip_address}:3000",
-        IO.OptionBuilder().setTransports(['websocket']).build());
 
-    // socket.connect();
-
-    socket.on('meeting', (data) async {
+    socketIoClient.socket.on('meeting', (data) async {
       setStateIfMounted(() {
         left = data['countDown'].toString();
       });
+
       if (data['countDown'] == 0) {
 
         print("dernier countdown = ${data}");
@@ -165,17 +170,18 @@ class VotePageState extends State<VotePage> {
             (Route<dynamic> route) => false,
           );
         }
-        socket.clearListeners();
+        socketIoClient.socket.clearListeners();
       }
 
     });
 
 
-    socket.on('deathPlayer', (dataDeath) async {
-      print("dataDeath");
+    socketIoClient.socket.on('deathPlayer', (dataDeath) async {
       final SharedPreferences prefs = await _prefs;
       final currentPlayer = json.decode(prefs.getString("currentPlayer")!);
       if(dataDeath["mac"] == currentPlayer['mac']){
+        currentPlayer["isAlive"] = dataDeath["isAlive"];
+        await prefs.setString("currentPlayer", json.encode(currentPlayer));
         //TODO : je suis mort que faire ?
         // Navigator.pushReplacement(
         //   context,
@@ -187,7 +193,7 @@ class VotePageState extends State<VotePage> {
 
     });
 
-    socket.on('win', (data) {
+    socketIoClient.socket.on('win', (data) {
       print('data win in vote page=$data');
       setState(() {
         win = true;
