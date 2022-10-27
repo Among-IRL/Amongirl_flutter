@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:amoungirl/pages/task_page.dart';
+import 'package:amoungirl/pages/wifiHunter.dart';
 import 'package:amoungirl/widgets/text_field_decoration.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -54,9 +55,16 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(widget.game),
+                builder: (BuildContext context) => WifiHunter(),
               ),
             );
+            //FIXME : remettre apres test wifi hunter
+            // Navigator.pushReplacement(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (BuildContext context) => TaskPage(widget.game),
+            //   ),
+            // );
             timer.cancel();
           });
         } else {

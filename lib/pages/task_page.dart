@@ -7,6 +7,7 @@ import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/vote_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/socket_io_client.dart';
@@ -108,7 +109,8 @@ class TaskPageState extends State<TaskPage> {
               elevation: 10,
               onPressed: () {
                 print("report");
-                socketIoClient.socket.emit('report', {'name': currentPlayer['name']});
+                socketIoClient.socket
+                    .emit('report', {'name': currentPlayer['name']});
               },
               child: const Icon(Icons.campaign),
             ),
@@ -143,10 +145,7 @@ class TaskPageState extends State<TaskPage> {
   Widget tasksList(List<dynamic> tasks) {
     if (tasks.isEmpty) {
       return Container(
-          height: MediaQuery
-              .of(context)
-              .size
-              .height / 2,
+          height: MediaQuery.of(context).size.height / 2,
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: 15.0),
             child: Text("Pas de taches pour le moment"),
@@ -172,20 +171,18 @@ class TaskPageState extends State<TaskPage> {
                     ),
                     actualTask['accomplished']
                         ? const Icon(
-                      Icons.check,
-                      color: Colors.green,
-                    )
+                            Icons.check,
+                            color: Colors.green,
+                          )
                         : const Icon(
-                      Icons.close,
-                      color: Colors.red,
-                    ),
+                            Icons.close,
+                            color: Colors.red,
+                          ),
                   ],
                 ),
-                Row(
-                  children: [
-                    const Text("distance : 0"),
-                  ],
-                )
+                Row(children: [
+                  Text("Pas trouvé"),
+                ])
               ],
             ),
           );
@@ -199,7 +196,7 @@ class TaskPageState extends State<TaskPage> {
     socketIoClient.socket.on('task', (data) {
       print("data ${data}");
       final myTask =
-      globalTasks.indexWhere((task) => task['mac'] == data['mac']);
+          globalTasks.indexWhere((task) => task['mac'] == data['mac']);
       print("mystask = $myTask");
       setStateIfMounted(() {
         globalTasks[myTask] = data;
@@ -258,24 +255,24 @@ class TaskPageState extends State<TaskPage> {
     if (mounted) setState(f);
   }
 
-  //FIXME just for test
-  // void startSabotageTimer() {
-  //   const oneSec = Duration(seconds: 1);
-  //   _timer = Timer.periodic(
-  //     oneSec,
-  //         (Timer timer) {
-  //       if (_start == 0) {
-  //         setState(() {
-  //           print("timer done");
-  //           blur = false;
-  //           timer.cancel();
-  //         });
-  //       } else {
-  //         setState(() {
-  //           _start--;
-  //         });
-  //       }
-  //     },
-  //   );
-  // }
+//FIXME just for test
+// void startSabotageTimer() {
+//   const oneSec = Duration(seconds: 1);
+//   _timer = Timer.periodic(
+//     oneSec,
+//         (Timer timer) {
+//       if (_start == 0) {
+//         setState(() {
+//           print("timer done");
+//           blur = false;
+//           timer.cancel();
+//         });
+//       } else {
+//         setState(() {
+//           _start--;
+//         });
+//       }
+//     },
+//   );
+// }
 }
