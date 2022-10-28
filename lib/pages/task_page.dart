@@ -4,6 +4,10 @@ import 'dart:ui';
 
 import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/end_game_page.dart';
+import 'package:amoungirl/pages/tasks/key_code.dart';
+import 'package:amoungirl/pages/tasks/qr_code.dart';
+import 'package:amoungirl/pages/tasks/simon.dart';
+import 'package:amoungirl/pages/tasks/swipe_card.dart';
 import 'package:amoungirl/pages/vote_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -108,7 +112,8 @@ class TaskPageState extends State<TaskPage> {
               elevation: 10,
               onPressed: () {
                 print("report");
-                socketIoClient.socket.emit('report', {'name': currentPlayer['name']});
+                socketIoClient.socket
+                    .emit('report', {'name': currentPlayer['name']});
               },
               child: const Icon(Icons.campaign),
             ),
@@ -143,10 +148,7 @@ class TaskPageState extends State<TaskPage> {
   Widget tasksList(List<dynamic> tasks) {
     if (tasks.isEmpty) {
       return Container(
-          height: MediaQuery
-              .of(context)
-              .size
-              .height / 2,
+          height: MediaQuery.of(context).size.height / 2,
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: 15.0),
             child: Text("Pas de taches pour le moment"),
@@ -158,35 +160,43 @@ class TaskPageState extends State<TaskPage> {
         itemBuilder: (BuildContext context, int index) {
           // final keyActual = keys[index];
           // final actualValue = values[index];
+
+
+          print("\nLES TASKS ????? $tasks\n");
           final actualTask = tasks[index];
-          return Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      actualTask['name'],
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    actualTask['accomplished']
-                        ? const Icon(
-                      Icons.check,
-                      color: Colors.green,
-                    )
-                        : const Icon(
-                      Icons.close,
-                      color: Colors.red,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text("distance : 0"),
-                  ],
-                )
-              ],
+          return GestureDetector(
+            onTap: () {
+              goToRightTasks(actualTask);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        actualTask['name'],
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      actualTask['accomplished']
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.green,
+                            )
+                          : const Icon(
+                              Icons.close,
+                              color: Colors.red,
+                            ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Text("distance : 0"),
+                    ],
+                  )
+                ],
+              ),
             ),
           );
         },
@@ -199,7 +209,7 @@ class TaskPageState extends State<TaskPage> {
     socketIoClient.socket.on('task', (data) {
       print("data ${data}");
       final myTask =
-      globalTasks.indexWhere((task) => task['mac'] == data['mac']);
+          globalTasks.indexWhere((task) => task['mac'] == data['mac']);
       print("mystask = $myTask");
       setStateIfMounted(() {
         globalTasks[myTask] = data;
@@ -258,24 +268,57 @@ class TaskPageState extends State<TaskPage> {
     if (mounted) setState(f);
   }
 
-  //FIXME just for test
-  // void startSabotageTimer() {
-  //   const oneSec = Duration(seconds: 1);
-  //   _timer = Timer.periodic(
-  //     oneSec,
-  //         (Timer timer) {
-  //       if (_start == 0) {
-  //         setState(() {
-  //           print("timer done");
-  //           blur = false;
-  //           timer.cancel();
-  //         });
-  //       } else {
-  //         setState(() {
-  //           _start--;
-  //         });
-  //       }
-  //     },
-  //   );
-  // }
+  goToRightTasks(Map<String, dynamic> task) {
+    print("task['mac'] === ${task["mac"]}");
+    switch (task["mac"]) {
+      case "swipe-card":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SwipeCard(task),
+          ),
+        );
+        break;
+      case "key-code":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => KeyCode(task),
+          ),
+        );
+        break;
+      case "qr-code":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => QrCode(task),
+          ),
+        );
+        break;
+      case "simon":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => Simon(task),
+          ),
+        );
+        break;
+    }
+  }
+//FIXME just for test
+// void startSabotageTimer() {
+//   const oneSec = Duration(seconds: 1);
+//   _timer = Timer.periodic(
+//     oneSec,
+//         (Timer timer) {
+//       if (_start == 0) {
+//         setState(() {
+//           print("timer done");
+//           blur = false;
+//           timer.cancel();
+//         });
+//       } else {
+//         setState(() {
+//           _start--;
+//         });
+//       }
+//     },
+//   );
+// }
 }
