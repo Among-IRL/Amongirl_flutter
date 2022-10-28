@@ -19,17 +19,24 @@ class WifiTestState extends State<WifiTest> {
   Color huntButtonColor = Colors.lightBlue;
 
   Future<void> huntWiFis() async {
-    setState(() => huntButtonColor = Colors.red);
-
     try {
-      wiFiHunterResult = (await WiFiHunter.huntWiFiNetworks)!;
+      print('wifi hunt');
+      final wiFiHunterResults = (await WiFiHunter.huntWiFiNetworks)!;
+
+      print("NOT EMPTY .?????? ${wiFiHunterResults.results.isNotEmpty} \n");
+      var contain = wiFiHunterResults.results.where((element) => element.SSID == "KEYCODE");
+      print("KEYCODE == $contain, empty ?? ${contain.isEmpty} \n");
+      if (wiFiHunterResults != wiFiHunterResult && wiFiHunterResults.results.isNotEmpty && contain.isNotEmpty) {
+        print("\nles results sont différents\n");
+        setState(() {
+          wiFiHunterResult = wiFiHunterResults;
+        });
+      }
     } on PlatformException catch (exception) {
       print(exception.toString());
     }
 
     if (!mounted) return;
-
-    setState(() => huntButtonColor = Colors.lightBlue);
   }
 
   @override
@@ -43,6 +50,7 @@ class WifiTestState extends State<WifiTest> {
 
   @override
   Widget build(BuildContext context) {
+    print("RESULT IN BUILD == ${wiFiHunterResult.results}");
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -56,7 +64,7 @@ class WifiTestState extends State<WifiTest> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(),
+              Text('TEST'),
               // Container(
               //   margin: const EdgeInsets.symmetric(vertical: 20.0),
               //   child: ElevatedButton(
@@ -71,59 +79,49 @@ class WifiTestState extends State<WifiTest> {
                       margin: const EdgeInsets.only(
                           bottom: 20.0, left: 30.0, right: 30.0),
                       child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(
-                              wiFiHunterResult.results.length,
-                              (index) => Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical: 10.0),
-                                    child: wiFiHunterResult
-                                                .results[index].SSID ==
-                                            "KEYCODE"
-                                        ? ListTile(
-                                            leading: Text(distanceToWifi(
-                                                        wiFiHunterResult
-                                                            .results[index]
-                                                            .level)
-                                                    .toStringAsFixed(1) +
-                                                ' m'),
-                                            title: Text(wiFiHunterResult
-                                                .results[index].SSID),
-                                            subtitle: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text('BSSID : ' +
-                                                      wiFiHunterResult
-                                                          .results[index]
-                                                          .BSSID),
-                                                  Text('Capabilities : ' +
-                                                      wiFiHunterResult
-                                                          .results[index]
-                                                          .capabilities),
-                                                  Text('Frequency : ' +
-                                                      wiFiHunterResult
-                                                          .results[index]
-                                                          .frequency
-                                                          .toString()),
-                                                  Text('Channel Width : ' +
-                                                      wiFiHunterResult
-                                                          .results[index]
-                                                          .channelWidth
-                                                          .toString()),
-                                                  Text('Timestamp : ' +
-                                                      wiFiHunterResult
-                                                          .results[index]
-                                                          .timestamp
-                                                          .toString())
-                                                ]))
-                                        : Container(),
-                                  ))),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(
+                          wiFiHunterResult.results.length,
+                          (index) => Container(
+                            margin: const EdgeInsets.symmetric(vertical: 10.0),
+                            child:
+                                wiFiHunterResult.results[index].SSID == "KEYCODE"
+                                    ?
+                                ListTile(
+                              leading: Text(distanceToWifi(
+                                          wiFiHunterResult.results[index].level)
+                                      .toStringAsFixed(1) +
+                                  ' m'),
+                              title: Text(wiFiHunterResult.results[index].SSID),
+                              subtitle: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('BSSID : ' +
+                                      wiFiHunterResult.results[index].BSSID),
+                                  Text('Capabilities : ' +
+                                      wiFiHunterResult
+                                          .results[index].capabilities),
+                                  Text('Frequency : ' +
+                                      wiFiHunterResult.results[index].frequency
+                                          .toString()),
+                                  Text('Channel Width : ' +
+                                      wiFiHunterResult
+                                          .results[index].channelWidth
+                                          .toString()),
+                                  Text('Timestamp : ' +
+                                      wiFiHunterResult.results[index].timestamp
+                                          .toString())
+                                ],
+                              ),
+                            )
+                            : Container(),
+                          ),
+                        ),
+                      ),
                     )
                   : Container()
             ],
