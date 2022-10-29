@@ -52,8 +52,14 @@ class QrCodeState extends State<QrCode> {
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
+    var scanArea = (MediaQuery.of(context).size.width < 400 ||
+        MediaQuery.of(context).size.height < 400)
+        ? 150.0
+        : 300.0;
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Qr Code"),
@@ -68,6 +74,12 @@ class QrCodeState extends State<QrCode> {
             child: QRView(
               key: qrKey,
               onQRViewCreated: _onQRViewCreated,
+              overlay: QrScannerOverlayShape(
+                  borderColor: Colors.red,
+                  borderRadius: 10,
+                  borderLength: 30,
+                  borderWidth: 10,
+                  cutOutSize: scanArea),
             ),
           ),
           Expanded(
@@ -100,11 +112,19 @@ class QrCodeState extends State<QrCode> {
   }
 
   void startTask() {
-    startTimer();
+
+    //enablaTaskQrCode
+    socketIoClient.socket.on("taskCompletedQrCode", (data) {
+
+    });
+
     socketIoClient.socket.emit(
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
     );
+
+    startTimer();
+
   }
 
   void startTimer() {
@@ -142,3 +162,4 @@ class QrCodeState extends State<QrCode> {
     );
   }
 }
+
