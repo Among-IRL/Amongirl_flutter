@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:amoungirl/config/config.dart';
@@ -9,8 +10,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:collection/collection.dart';
 
 import '../services/socket_io_client.dart';
+import 'dart:async';
+
+import 'package:wifi_hunter/wifi_hunter.dart';
+import 'package:wifi_hunter/wifi_hunter_result.dart';
 
 class TaskPage extends StatefulWidget {
   final Map<String, dynamic> game;
@@ -24,6 +30,7 @@ class TaskPage extends StatefulWidget {
 }
 
 class TaskPageState extends State<TaskPage> {
+  WiFiHunterResult wiFiHunterResult = WiFiHunterResult();
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   SocketIoClient socketIoClient = SocketIoClient();
   List<dynamic> globalTasks = [];
@@ -42,6 +49,9 @@ class TaskPageState extends State<TaskPage> {
       globalTasks = widget.game['globalTasks'];
       // tasks.add(widget.game)
     });
+    Timer.periodic(Duration(seconds: 2), (Timer t) async {
+      await huntWiFis();
+    });
     onSocket();
     super.initState();
   }
@@ -50,6 +60,38 @@ class TaskPageState extends State<TaskPage> {
   void dispose() {
     // _timer.cancel();
     super.dispose();
+  }
+
+  Future<void> huntWiFis() async {
+    try {
+      // print('wifi hunt');
+      final wiFiHunterResults = (await WiFiHunter.huntWiFiNetworks)!;
+
+      // print("NOT EMPTY .?????? ${wiFiHunterResults.results.isNotEmpty} \n");
+      // var contain = wiFiHunterResults.results
+      //     .where((element) => element.SSID == widget.actualTask['mac']);
+
+      var contain = wiFiHunterResults.results
+          .where((element) => element.SSID == "Freebox-Deba");
+
+      if (wiFiHunterResults != wiFiHunterResult &&
+          wiFiHunterResults.results.isNotEmpty &&
+          contain.isNotEmpty) {
+        // print("\nles results sont différents\n");
+        setState(() {
+          wiFiHunterResult = wiFiHunterResults;
+        });
+      }
+
+      // print('contain: $contain');
+      // print('widget.actualTask : ${widget.actualTask['mac']}');
+      // print("KEYCODE == $contain, empty ?? ${contain.isEmpty} \n");
+
+    } on PlatformException catch (exception) {
+      print(exception.toString());
+    }
+
+    if (!mounted) return;
   }
 
   @override
@@ -155,9 +197,10 @@ class TaskPageState extends State<TaskPage> {
       child: ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (BuildContext context, int index) {
-          // final keyActual = keys[index];
-          // final actualValue = values[index];
           final actualTask = tasks[index];
+          WiFiHunterResultEntry? contain = wiFiHunterResult.results
+              .firstWhereOrNull((element) => element.SSID == actualTask['mac']);
+
           return Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -181,7 +224,9 @@ class TaskPageState extends State<TaskPage> {
                   ],
                 ),
                 Row(children: [
-                  Text("Pas trouvé"),
+                  wiFiHunterResult.results.isNotEmpty
+                      ? Text(getDitanceWifi(contain, actualTask, context))
+                      : const Text("En préparation")
                 ])
               ],
             ),
@@ -189,6 +234,16 @@ class TaskPageState extends State<TaskPage> {
         },
       ),
     );
+  }
+
+  String getDitanceWifi(contain, actualTask, context) {
+    if (contain != null) {
+      return contain.SSID == actualTask['mac']
+          ? distanceToWifi(contain.level).toStringAsFixed(1) + "m"
+          : "";
+    } else {
+      return "Pas trouvé";
+    }
   }
 
   void onSocket() {
@@ -253,6 +308,14 @@ class TaskPageState extends State<TaskPage> {
 
   void setStateIfMounted(f) {
     if (mounted) setState(f);
+  }
+
+  num distanceToWifi(int rssi) {
+    int rssiToOneMetter = -44;
+    double environmentalFactor = 2.3;
+    double ratio = (rssiToOneMetter - rssi) / (10 * environmentalFactor);
+
+    return pow(10, ratio);
   }
 
 //FIXME just for test
