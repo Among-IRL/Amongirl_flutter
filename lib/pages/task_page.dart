@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/end_game_page.dart';
+import 'package:amoungirl/pages/tasks/cable.dart';
 import 'package:amoungirl/pages/tasks/key_code.dart';
 import 'package:amoungirl/pages/tasks/qr_code.dart';
 import 'package:amoungirl/pages/tasks/simon.dart';
@@ -296,6 +297,13 @@ class TaskPageState extends State<TaskPage> {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => Simon(task),
+          ),
+        );
+        break;
+      case "cables":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => Cable(task),
           ),
         );
         break;
