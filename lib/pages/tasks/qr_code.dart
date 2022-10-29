@@ -113,7 +113,7 @@ class QrCodeState extends State<QrCode> {
 
   void startTask() {
 
-    //enablaTaskQrCode
+    //TODO get socket to update game
     socketIoClient.socket.on("taskCompletedQrCode", (data) {
 
     });

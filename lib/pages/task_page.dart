@@ -102,7 +102,11 @@ class TaskPageState extends State<TaskPage> {
               heroTag: "sabotage",
               elevation: 10,
               onPressed: () {
+                if (currentPlayer['role'] == "player" ) {
+                  return;
+                }
                 print("sabotage");
+
                 socketIoClient.socket.emit('sabotage', {'isSabotage': true});
               },
               child: const Icon(Icons.settings),
@@ -114,6 +118,9 @@ class TaskPageState extends State<TaskPage> {
               heroTag: "kill",
               elevation: 10,
               onPressed: () {
+                if (currentPlayer['role'] == "player" ) {
+                  return;
+                }
                 print("kill");
               },
               child: const Icon(Icons.power_off),
@@ -125,6 +132,9 @@ class TaskPageState extends State<TaskPage> {
               heroTag: "report",
               elevation: 10,
               onPressed: () {
+                if(!currentPlayer['isAlive']) {
+                  return;
+                }
                 socketIoClient.socket
                     .emit('report', {'name': currentPlayer['name']});
               },
@@ -133,22 +143,19 @@ class TaskPageState extends State<TaskPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
+      body: Center(
 
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
-              BackdropFilter(
-                filter: blur
-                    ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
-                    : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
-                child: Container(),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
+            BackdropFilter(
+              filter: blur
+                  ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
+                  : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
+              child: Container(),
+            ),
+          ],
         ),
       ),
     );
@@ -179,7 +186,7 @@ class TaskPageState extends State<TaskPage> {
             goToRightTasks(actualTask) : null;
           },
           child: Container(
-            color: isAccessTask(contain, actualTask) ? Colors.green : Colors.grey[50],
+            color: isAccessTask(contain, actualTask) ? Colors.green[100] : Colors.red[100],
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
