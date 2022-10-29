@@ -33,7 +33,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   @override
   void initState() {
     initializeSocket();
-    socketIoClient.socket.emit('initGame');
+    socketIoClient.socket.emit('getGameData');
     print("inin game");
 
     super.initState();
@@ -115,7 +115,7 @@ class GameConfigPageState extends State<GameConfigPage> {
       }
     });
 
-    socketIoClient.socket.on('initGame', (data) async {
+    socketIoClient.socket.on('getGameData', (data) async {
       print("INIT GAME");
       final SharedPreferences prefs = await _prefs;
       prefs.clear();

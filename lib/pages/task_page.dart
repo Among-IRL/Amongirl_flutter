@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:amoungirl/config/config.dart';
-import 'package:amoungirl/pages/end_game_page.dart';
+import 'package:amoungirl/pages/tasks/cable.dart';
+import 'package:amoungirl/pages/tasks/key_code.dart';
+import 'package:amoungirl/pages/tasks/qr_code.dart';
+import 'package:amoungirl/pages/tasks/simon.dart';
+import 'package:amoungirl/pages/tasks/swipe_card.dart';
 import 'package:amoungirl/pages/vote_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +36,7 @@ class TaskPageState extends State<TaskPage> {
   WiFiHunterResult wiFiHunterResult = WiFiHunterResult();
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   SocketIoClient socketIoClient = SocketIoClient();
-  List<dynamic> globalTasks = [];
+  List<dynamic> personalTasks = [];
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
 
@@ -45,10 +48,7 @@ class TaskPageState extends State<TaskPage> {
   @override
   void initState() {
     whoIam();
-    setState(() {
-      globalTasks = widget.game['globalTasks'];
-      // tasks.add(widget.game)
-    });
+    getPersonalTasks();
     Timer.periodic(Duration(seconds: 2), (Timer t) async {
       await huntWiFis();
     });
@@ -96,22 +96,9 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final keys = tasks.keys.toList();
-    // final values = tasks.values.toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Liste des taches"),
-        // actions: [
-        //   IconButton(
-        //     onPressed: () {
-        //       // socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
-        //       socket.emit('task', {'mac': 'abc', 'status': true});
-        //       // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
-        //       // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
-        //     },
-        //     icon: Icon(Icons.build),
-        //   ),
-        // ],
       ),
       floatingActionButton: Wrap(
         direction: Axis.horizontal,
@@ -162,15 +149,11 @@ class TaskPageState extends State<TaskPage> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
+
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Tâches communes'),
-              tasksList(globalTasks),
-              const Text('Tâches personnelles'),
-              currentPlayer.isNotEmpty
-                  ? tasksList(currentPlayer['personalTasks'])
-                  : Container(),
+              currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
               BackdropFilter(
                 filter: blur
                     ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
@@ -193,15 +176,21 @@ class TaskPageState extends State<TaskPage> {
             child: Text("Pas de taches pour le moment"),
           ));
     }
-    return Flexible(
-      child: ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (BuildContext context, int index) {
-          final actualTask = tasks[index];
-          WiFiHunterResultEntry? contain = wiFiHunterResult.results
-              .firstWhereOrNull((element) => element.SSID == actualTask['mac']);
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: tasks.length,
+      itemBuilder: (BuildContext context, int index) {
+        // final keyActual = keys[index];
+        // final actualValue = values[index];
 
-          return Padding(
+        final actualTask = tasks[index];
+        WiFiHunterResultEntry? contain = wiFiHunterResult.results
+            .firstWhereOrNull((element) => element.SSID == actualTask['mac']);
+        return GestureDetector(
+          onTap: () {
+            goToRightTasks(actualTask);
+          },
+          child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
               children: [
@@ -230,9 +219,9 @@ class TaskPageState extends State<TaskPage> {
                 ])
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -247,14 +236,11 @@ class TaskPageState extends State<TaskPage> {
   }
 
   void onSocket() {
-    print("LISTEN");
     socketIoClient.socket.on('task', (data) {
-      print("data ${data}");
       final myTask =
-          globalTasks.indexWhere((task) => task['mac'] == data['mac']);
-      print("mystask = $myTask");
+          personalTasks.indexWhere((task) => task['mac'] == data['mac']);
       setStateIfMounted(() {
-        globalTasks[myTask] = data;
+        personalTasks[myTask] = data;
       });
     });
 
@@ -310,6 +296,85 @@ class TaskPageState extends State<TaskPage> {
     if (mounted) setState(f);
   }
 
+  goToRightTasks(Map<String, dynamic> task) {
+    print("task['mac'] === ${task["mac"]}");
+    switch (task["mac"]) {
+      case "CARDSWIPE":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => SwipeCard(task, currentPlayer),
+          ),
+        );
+        break;
+      case "KEYCODE":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => KeyCode(task, currentPlayer),
+          ),
+        );
+        break;
+      case "QRCODE":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => QrCode(task, currentPlayer),
+          ),
+        );
+        break;
+      case "SIMON":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => Simon(task, currentPlayer),
+          ),
+        );
+        break;
+      case "CABLE":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => Cable(task, currentPlayer),
+          ),
+        );
+        break;
+      case "SOCLE":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => Cable(task, currentPlayer),
+          ),
+        );
+        break;
+    }
+  }
+
+  void getPersonalTasks() async {
+    final SharedPreferences prefs = await _prefs;
+    final currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+    List<Map<String, dynamic>> tasks = [];
+    List<dynamic> players = widget.game['players'];
+    Map<String, dynamic> player =
+        players.firstWhere((player) => player['mac'] == currentPlayer['mac']);
+    setState(() {
+      personalTasks = player['personalTasks'];
+    });
+  }
+//FIXME just for test
+// void startSabotageTimer() {
+//   const oneSec = Duration(seconds: 1);
+//   _timer = Timer.periodic(
+//     oneSec,
+//         (Timer timer) {
+//       if (_start == 0) {
+//         setState(() {
+//           print("timer done");
+//           blur = false;
+//           timer.cancel();
+//         });
+//       } else {
+//         setState(() {
+//           _start--;
+//         });
+//       }
+//     },
+//   );
+// }
   num distanceToWifi(int rssi) {
     int rssiToOneMetter = -44;
     double environmentalFactor = 2.3;
