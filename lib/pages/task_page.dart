@@ -217,7 +217,7 @@ class TaskPageState extends State<TaskPage> {
   }
 
   bool isAccessTask(contain, actualTask) {
-    return double.parse(getDitanceWifi(contain, actualTask) ?? '100') < 5.0 && !actualTask['accomplished'];
+    return !actualTask['accomplished'];
   }
 
   String formatDistanceToString(contain, actualTask) {
