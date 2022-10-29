@@ -79,7 +79,7 @@ class SwipeCardState extends State<SwipeCard> {
           setState(() {
             print("timer swipe card done");
 
-            socketIoClient.socket.emit("accomplishedTask", {
+            socketIoClient.socket.emit("timerTaskDone", {
               "macPlayer": widget.currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,

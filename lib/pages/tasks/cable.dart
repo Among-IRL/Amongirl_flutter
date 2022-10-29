@@ -84,7 +84,7 @@ class CableState extends State<Cable> {
           setState(() {
             print("timer key code done");
 
-            socketIoClient.socket.emit("accomplishedTask", {
+            socketIoClient.socket.emit("timerTaskDone", {
               "macPlayer": currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,

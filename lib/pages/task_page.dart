@@ -106,17 +106,20 @@ class TaskPageState extends State<TaskPage> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
-              BackdropFilter(
-                filter: blur
-                    ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
-                    : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
-                child: Container(),
-              ),
-            ],
+
+          child: Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
+                BackdropFilter(
+                  filter: blur
+                      ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
+                      : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
+                  child: Container(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -133,6 +136,7 @@ class TaskPageState extends State<TaskPage> {
           ));
     }
     return ListView.builder(
+      shrinkWrap: true,
       itemCount: tasks.length,
       itemBuilder: (BuildContext context, int index) {
         // final keyActual = keys[index];
@@ -291,7 +295,7 @@ class TaskPageState extends State<TaskPage> {
     final SharedPreferences prefs = await _prefs;
     final currentPlayer = json.decode(prefs.getString("currentPlayer")!);
     List<Map<String, dynamic>> tasks = [];
-    List<Map<String, dynamic>> players = widget.game['players'];
+    List<dynamic> players = widget.game['players'];
     Map<String, dynamic> player =
         players.firstWhere((player) => player['mac'] == currentPlayer['mac']);
     setState(() {

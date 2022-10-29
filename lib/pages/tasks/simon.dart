@@ -77,7 +77,7 @@ class SimonState extends State<Simon> {
           setState(() {
             print("timer simon done");
 
-            socketIoClient.socket.emit("accomplishedTask", {
+            socketIoClient.socket.emit("timerTaskDone", {
               "macPlayer": currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,

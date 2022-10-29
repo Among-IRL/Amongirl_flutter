@@ -127,7 +127,7 @@ class QrCodeState extends State<QrCode> {
           setState(() {
             print("timer qr code done");
 
-            socketIoClient.socket.emit("accomplishedTask", {
+            socketIoClient.socket.emit("timerTaskDone", {
               "macPlayer": currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": accomplished(),

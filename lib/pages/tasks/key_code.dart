@@ -123,7 +123,7 @@ class KeyCodeState extends State<KeyCode> {
           setState(() {
             print("timer key code done");
 
-            socketIoClient.socket.emit("accomplishedTask", {
+            socketIoClient.socket.emit("timerTaskDone", {
               "macPlayer": currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,
