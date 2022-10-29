@@ -138,7 +138,6 @@ class TaskPageState extends State<TaskPage> {
         // final keyActual = keys[index];
         // final actualValue = values[index];
 
-        print("\nLES TASKS ????? $tasks\n");
         final actualTask = tasks[index];
         return GestureDetector(
           onTap: () {
@@ -246,7 +245,7 @@ class TaskPageState extends State<TaskPage> {
       case "CARDSWIPE":
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => SwipeCard(task),
+            builder: (context) => SwipeCard(task, currentPlayer),
           ),
         );
         break;

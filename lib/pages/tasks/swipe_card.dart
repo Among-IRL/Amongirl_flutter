@@ -8,8 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SwipeCard extends StatefulWidget {
   final Map<String, dynamic> task;
+  final Map<String, dynamic> currentPlayer;
 
-  SwipeCard(this.task);
+  SwipeCard(this.task,this.currentPlayer);
 
   @override
   State<StatefulWidget> createState() => SwipeCardState();
@@ -19,7 +20,6 @@ class SwipeCardState extends State<SwipeCard> {
 
 
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  Map<String, dynamic> currentPlayer = {};
   SocketIoClient socketIoClient = SocketIoClient();
 
   late Timer _timer;
@@ -27,7 +27,7 @@ class SwipeCardState extends State<SwipeCard> {
 
   @override
   void initState() {
-    whoIam();
+    // whoIam();
     // TODO: START TIMER
     // TODO EMIT START TASK
     startTask();
@@ -56,18 +56,18 @@ class SwipeCardState extends State<SwipeCard> {
     startTimer();
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": currentPlayer},
+      {'task': widget.task, "player": widget.currentPlayer},
     );
   }
 
-  Future whoIam() async {
-    final SharedPreferences prefs = await _prefs;
-    print("before get player");
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      print("current player = $currentPlayer");
-    });
-  }
+  // Future whoIam() async {
+  //   final SharedPreferences prefs = await _prefs;
+  //   print("before get player");
+  //   setState(() {
+  //     widget.currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+  //     print("current player = ${widget.currentPlayer}");
+  //   });
+  // }
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);
@@ -80,7 +80,7 @@ class SwipeCardState extends State<SwipeCard> {
             print("timer swipe card done");
 
             socketIoClient.socket.emit("accomplishedTask", {
-              "macPlayer": currentPlayer["mac"],
+              "macPlayer": widget.currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,
             });
