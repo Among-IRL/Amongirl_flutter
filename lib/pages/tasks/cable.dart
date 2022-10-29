@@ -1,44 +1,27 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class QrCode extends StatefulWidget {
+class Cable extends StatefulWidget {
   final Map<String, dynamic> task;
 
-  QrCode(this.task);
+  Cable(this.task);
+
   @override
-  State<StatefulWidget> createState() => QrCodeState();
+  State<StatefulWidget> createState() => CableState();
 }
 
-class QrCodeState extends State<QrCode> {
-
+class CableState extends State<Cable> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   Map<String, dynamic> currentPlayer = {};
   SocketIoClient socketIoClient = SocketIoClient();
 
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  Barcode? result;
-  QRViewController? controller;
-
   late Timer _timer;
   int _start = 10;
-
-  @override
-  void reassemble() {
-    super.reassemble();
-    if (Platform.isAndroid) {
-      controller!.pauseCamera();
-    } else if (Platform.isIOS) {
-      controller!.resumeCamera();
-    }
-  }
 
   @override
   void initState() {
@@ -51,7 +34,6 @@ class QrCodeState extends State<QrCode> {
 
   @override
   void dispose() {
-    controller?.dispose();
     _timer.cancel();
     super.dispose();
   }
@@ -60,52 +42,27 @@ class QrCodeState extends State<QrCode> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Qr Code"),
+        title: Text("Cable"),
       ),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 5,
-            child: QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
-            ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
+          child: Column(
+            children: [
+              Text("Veuillez connecter les cables"),
+            ],
           ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: (result != null)
-                  ? Text(result!.code.toString())
-                  : Text('Scan a code'),
-            ),
-          )
-        ],
+        ),
       ),
     );
   }
 
-  accomplished(){
-    if(result!.code == "MISSION ACCOMPLIE !"){
-      return true;
-    }
-    return false;
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-      });
-    });
-  }
-
   void startTask() {
-    startTimer();
     socketIoClient.socket.emit(
       "startTask",
       {'task': widget.task, "player": currentPlayer},
     );
+    startTimer();
   }
 
   Future whoIam() async {
@@ -121,16 +78,16 @@ class QrCodeState extends State<QrCode> {
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
-          (Timer timer) {
+      (Timer timer) {
         print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
-            print("timer qr code done");
+            print("timer key code done");
 
             socketIoClient.socket.emit("accomplishedTask", {
               "macPlayer": currentPlayer["mac"],
               "macTask": widget.task["mac"],
-              "accomplished": accomplished(),
+              "accomplished": true,
             });
             timer.cancel();
           });
@@ -141,5 +98,10 @@ class QrCodeState extends State<QrCode> {
         }
       },
     );
+  }
+
+  codeChanged() {
+    //TODO : EMIT CODE CHANGE
+    print("EMIT CODE CHANGE");
   }
 }
