@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../task_page.dart';
+
 class QrCode extends StatefulWidget {
   final Map<String, dynamic> task;
   final Map<String, dynamic> currentPlayer;
@@ -112,10 +114,13 @@ class QrCodeState extends State<QrCode> {
   }
 
   void startTask() {
-
-    //TODO get socket to update game
     socketIoClient.socket.on("taskCompletedQrCode", (data) {
-
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => TaskPage(data),
+        ),
+      );
     });
 
     socketIoClient.socket.emit(

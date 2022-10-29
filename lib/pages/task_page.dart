@@ -144,7 +144,6 @@ class TaskPageState extends State<TaskPage> {
         ],
       ),
       body: Center(
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
