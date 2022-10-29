@@ -188,36 +188,40 @@ class TaskPageState extends State<TaskPage> {
             .firstWhereOrNull((element) => element.SSID == actualTask['mac']);
         return GestureDetector(
           onTap: () {
-            goToRightTasks(actualTask);
+            isAccessTask(contain, actualTask) ?
+            goToRightTasks(actualTask) : null;
           },
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      actualTask['name'],
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    actualTask['accomplished']
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.green,
-                          )
-                        : const Icon(
-                            Icons.close,
-                            color: Colors.red,
-                          ),
-                  ],
-                ),
-                Row(children: [
-                  wiFiHunterResult.results.isNotEmpty
-                      ? Text(getDitanceWifi(contain, actualTask, context))
-                      : const Text("En préparation")
-                ])
-              ],
+          child: Container(
+            color: isAccessTask(contain, actualTask) ? Colors.green : Colors.grey[50],
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        actualTask['name'],
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      actualTask['accomplished']
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.green,
+                            )
+                          : const Icon(
+                              Icons.close,
+                              color: Colors.red,
+                            ),
+                    ],
+                  ),
+                  Row(children: [
+                    wiFiHunterResult.results.isNotEmpty
+                        ? Text(formatDistanceToString(contain, actualTask))
+                        : const Text("En préparation")
+                  ])
+                ],
+              ),
             ),
           ),
         );
@@ -225,13 +229,21 @@ class TaskPageState extends State<TaskPage> {
     );
   }
 
-  String getDitanceWifi(contain, actualTask, context) {
+  bool isAccessTask(contain, actualTask) {
+    return double.parse(getDitanceWifi(contain, actualTask) ?? '100') < 5.0 && !actualTask['accomplished'];
+  }
+
+  String formatDistanceToString(contain, actualTask) {
+    return getDitanceWifi(contain, actualTask) != null ? getDitanceWifi(contain, actualTask)! + 'm' : 'Pas de wifi détecté';
+  }
+
+  String? getDitanceWifi(contain, actualTask) {
     if (contain != null) {
       return contain.SSID == actualTask['mac']
-          ? distanceToWifi(contain.level).toStringAsFixed(1) + "m"
+          ? calculDistanceWifi(contain.level).toStringAsFixed(1)
           : "";
     } else {
-      return "Pas trouvé";
+      return null;
     }
   }
 
@@ -299,7 +311,7 @@ class TaskPageState extends State<TaskPage> {
   goToRightTasks(Map<String, dynamic> task) {
     print("task['mac'] === ${task["mac"]}");
     switch (task["mac"]) {
-      case "CARDSWIPE":
+      case "Freebox-Deba":
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SwipeCard(task, currentPlayer),
@@ -355,27 +367,8 @@ class TaskPageState extends State<TaskPage> {
       personalTasks = player['personalTasks'];
     });
   }
-//FIXME just for test
-// void startSabotageTimer() {
-//   const oneSec = Duration(seconds: 1);
-//   _timer = Timer.periodic(
-//     oneSec,
-//         (Timer timer) {
-//       if (_start == 0) {
-//         setState(() {
-//           print("timer done");
-//           blur = false;
-//           timer.cancel();
-//         });
-//       } else {
-//         setState(() {
-//           _start--;
-//         });
-//       }
-//     },
-//   );
-// }
-  num distanceToWifi(int rssi) {
+
+  num calculDistanceWifi(int rssi) {
     int rssiToOneMetter = -44;
     double environmentalFactor = 2.3;
     double ratio = (rssiToOneMetter - rssi) / (10 * environmentalFactor);
