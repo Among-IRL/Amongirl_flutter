@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:amoungirl/config/config.dart';
-import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/tasks/cable.dart';
 import 'package:amoungirl/pages/tasks/key_code.dart';
 import 'package:amoungirl/pages/tasks/qr_code.dart';
@@ -30,7 +28,7 @@ class TaskPage extends StatefulWidget {
 class TaskPageState extends State<TaskPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   SocketIoClient socketIoClient = SocketIoClient();
-  List<dynamic> globalTasks = [];
+  List<dynamic> personalTasks = [];
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
 
@@ -42,10 +40,7 @@ class TaskPageState extends State<TaskPage> {
   @override
   void initState() {
     whoIam();
-    setState(() {
-      globalTasks = widget.game['globalTasks'];
-      // tasks.add(widget.game)
-    });
+    getPersonalTasks();
     onSocket();
     super.initState();
   }
@@ -58,22 +53,9 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final keys = tasks.keys.toList();
-    // final values = tasks.values.toList();
     return Scaffold(
       appBar: AppBar(
         title: const Text("Liste des taches"),
-        // actions: [
-        //   IconButton(
-        //     onPressed: () {
-        //       // socket.emit('task', {'mac': '0013A20041A72956', 'status': true});
-        //       socket.emit('task', {'mac': 'abc', 'status': true});
-        //       // socket.emit('task', {'mac': '0013A20041A72958', 'status': true});
-        //       // socket.emit('task', {'mac': '0013A20041A72959', 'status': true});
-        //     },
-        //     icon: Icon(Icons.build),
-        //   ),
-        // ],
       ),
       floatingActionButton: Wrap(
         direction: Axis.horizontal,
@@ -127,12 +109,7 @@ class TaskPageState extends State<TaskPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Tâches communes'),
-              tasksList(globalTasks),
-              const Text('Tâches personnelles'),
-              currentPlayer.isNotEmpty
-                  ? tasksList(currentPlayer['personalTasks'])
-                  : Container(),
+              currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
               BackdropFilter(
                 filter: blur
                     ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
@@ -155,65 +132,59 @@ class TaskPageState extends State<TaskPage> {
             child: Text("Pas de taches pour le moment"),
           ));
     }
-    return Flexible(
-      child: ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (BuildContext context, int index) {
-          // final keyActual = keys[index];
-          // final actualValue = values[index];
+    return ListView.builder(
+      itemCount: tasks.length,
+      itemBuilder: (BuildContext context, int index) {
+        // final keyActual = keys[index];
+        // final actualValue = values[index];
 
-
-          print("\nLES TASKS ????? $tasks\n");
-          final actualTask = tasks[index];
-          return GestureDetector(
-            onTap: () {
-              goToRightTasks(actualTask);
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        actualTask['name'],
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      actualTask['accomplished']
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.green,
-                            )
-                          : const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                            ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const Text("distance : 0"),
-                    ],
-                  )
-                ],
-              ),
+        print("\nLES TASKS ????? $tasks\n");
+        final actualTask = tasks[index];
+        return GestureDetector(
+          onTap: () {
+            goToRightTasks(actualTask);
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      actualTask['name'],
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    actualTask['accomplished']
+                        ? const Icon(
+                            Icons.check,
+                            color: Colors.green,
+                          )
+                        : const Icon(
+                            Icons.close,
+                            color: Colors.red,
+                          ),
+                  ],
+                ),
+                Row(
+                  children: const [
+                    Text("distance : 0"),
+                  ],
+                )
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
   void onSocket() {
-    print("LISTEN");
     socketIoClient.socket.on('task', (data) {
-      print("data ${data}");
       final myTask =
-          globalTasks.indexWhere((task) => task['mac'] == data['mac']);
-      print("mystask = $myTask");
+          personalTasks.indexWhere((task) => task['mac'] == data['mac']);
       setStateIfMounted(() {
-        globalTasks[myTask] = data;
+        personalTasks[myTask] = data;
       });
     });
 
@@ -315,6 +286,18 @@ class TaskPageState extends State<TaskPage> {
         );
         break;
     }
+  }
+
+  void getPersonalTasks() async {
+    final SharedPreferences prefs = await _prefs;
+    final currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+    List<Map<String, dynamic>> tasks = [];
+    List<Map<String, dynamic>> players = widget.game['players'];
+    Map<String, dynamic> player =
+        players.firstWhere((player) => player['mac'] == currentPlayer['mac']);
+    setState(() {
+      personalTasks = player['personalTasks'];
+    });
   }
 //FIXME just for test
 // void startSabotageTimer() {
