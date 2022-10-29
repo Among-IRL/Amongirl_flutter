@@ -42,14 +42,11 @@ class TaskPageState extends State<TaskPage> {
 
   late Timer _timer;
 
-  //FIXME: change time
-  int _start = 5;
-
   @override
   void initState() {
     whoIam();
     getPersonalTasks();
-    Timer.periodic(Duration(seconds: 2), (Timer t) async {
+    _timer = Timer.periodic(const Duration(seconds: 2), (Timer t) async {
       await huntWiFis();
     });
     onSocket();
@@ -57,35 +54,31 @@ class TaskPageState extends State<TaskPage> {
   }
 
   @override
+  void setState(fn) {
+    if(mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   void dispose() {
-    // _timer.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
   Future<void> huntWiFis() async {
     try {
-      // print('wifi hunt');
       final wiFiHunterResults = (await WiFiHunter.huntWiFiNetworks)!;
-
-      // print("NOT EMPTY .?????? ${wiFiHunterResults.results.isNotEmpty} \n");
-      // var contain = wiFiHunterResults.results
-      //     .where((element) => element.SSID == widget.actualTask['mac']);
-
       var contain = wiFiHunterResults.results
           .where((element) => element.SSID == "Freebox-Deba");
 
       if (wiFiHunterResults != wiFiHunterResult &&
           wiFiHunterResults.results.isNotEmpty &&
           contain.isNotEmpty) {
-        // print("\nles results sont différents\n");
         setState(() {
           wiFiHunterResult = wiFiHunterResults;
         });
       }
-
-      // print('contain: $contain');
-      // print('widget.actualTask : ${widget.actualTask['mac']}');
-      // print("KEYCODE == $contain, empty ?? ${contain.isEmpty} \n");
 
     } on PlatformException catch (exception) {
       print(exception.toString());
@@ -110,10 +103,6 @@ class TaskPageState extends State<TaskPage> {
               elevation: 10,
               onPressed: () {
                 print("sabotage");
-                // setState(() {
-                //   blur = true;
-                // });
-                // startSabotageTimer();
                 socketIoClient.socket.emit('sabotage', {'isSabotage': true});
               },
               child: const Icon(Icons.settings),
@@ -126,7 +115,6 @@ class TaskPageState extends State<TaskPage> {
               elevation: 10,
               onPressed: () {
                 print("kill");
-                // socket.emit('report', {'name': currentPlayer['name']});
               },
               child: const Icon(Icons.power_off),
             ),
@@ -137,7 +125,6 @@ class TaskPageState extends State<TaskPage> {
               heroTag: "report",
               elevation: 10,
               onPressed: () {
-                print("report");
                 socketIoClient.socket
                     .emit('report', {'name': currentPlayer['name']});
               },
@@ -267,7 +254,7 @@ class TaskPageState extends State<TaskPage> {
     // });
 
     socketIoClient.socket.on('report', (data) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (BuildContext context) => VotePage(data),
