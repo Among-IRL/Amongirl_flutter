@@ -272,35 +272,42 @@ class TaskPageState extends State<TaskPage> {
   goToRightTasks(Map<String, dynamic> task) {
     print("task['mac'] === ${task["mac"]}");
     switch (task["mac"]) {
-      case "swipe-card":
+      case "CARDSWIPE":
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SwipeCard(task),
           ),
         );
         break;
-      case "key-code":
+      case "KEYCODE":
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => KeyCode(task),
           ),
         );
         break;
-      case "qr-code":
+      case "QRCODE":
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => QrCode(task),
           ),
         );
         break;
-      case "simon":
+      case "SIMON":
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => Simon(task),
           ),
         );
         break;
-      case "cables":
+      case "CABLE":
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => Cable(task),
+          ),
+        );
+        break;
+      case "SOCLE":
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => Cable(task),
