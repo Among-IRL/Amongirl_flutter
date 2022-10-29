@@ -107,19 +107,17 @@ class TaskPageState extends State<TaskPage> {
         padding: const EdgeInsets.all(8.0),
         child: Center(
 
-          child: Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
-                BackdropFilter(
-                  filter: blur
-                      ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
-                      : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
-                  child: Container(),
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
+              BackdropFilter(
+                filter: blur
+                    ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
+                    : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
+                child: Container(),
+              ),
+            ],
           ),
         ),
       ),
@@ -256,35 +254,35 @@ class TaskPageState extends State<TaskPage> {
       case "KEYCODE":
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => KeyCode(task),
+            builder: (context) => KeyCode(task, currentPlayer),
           ),
         );
         break;
       case "QRCODE":
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => QrCode(task),
+            builder: (context) => QrCode(task, currentPlayer),
           ),
         );
         break;
       case "SIMON":
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => Simon(task),
+            builder: (context) => Simon(task, currentPlayer),
           ),
         );
         break;
       case "CABLE":
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => Cable(task),
+            builder: (context) => Cable(task, currentPlayer),
           ),
         );
         break;
       case "SOCLE":
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => Cable(task),
+            builder: (context) => Cable(task, currentPlayer),
           ),
         );
         break;

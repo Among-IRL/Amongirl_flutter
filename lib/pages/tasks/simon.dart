@@ -8,16 +8,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Simon extends StatefulWidget {
   final Map<String, dynamic> task;
+  final Map<String, dynamic> currentPlayer;
 
-  Simon(this.task);
+  Simon(this.task, this.currentPlayer);
 
   @override
   State<StatefulWidget> createState() => SimonState();
 }
 
 class SimonState extends State<Simon> {
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  Map<String, dynamic> currentPlayer = {};
   SocketIoClient socketIoClient = SocketIoClient();
 
   late Timer _timer;
@@ -25,9 +24,6 @@ class SimonState extends State<Simon> {
 
   @override
   void initState() {
-    whoIam();
-    // TODO: START TIMER
-    // TODO EMIT START TASK
     startTask();
     super.initState();
   }
@@ -45,7 +41,13 @@ class SimonState extends State<Simon> {
         title: Text("Simon"),
       ),
       body: Center(
-        child: Text("Veuillez jouer au simon"),
+        child: Column(
+          children: [
+            Text("Temps restant : $_start"),
+            Text("Veuillez jouer au simon"),
+          ],
+        ),
+
       ),
     );
   }
@@ -54,18 +56,10 @@ class SimonState extends State<Simon> {
     startTimer();
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": currentPlayer},
+      {'task': widget.task, "player": widget.currentPlayer},
     );
   }
 
-  Future whoIam() async {
-    final SharedPreferences prefs = await _prefs;
-    print("before get player");
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      print("current player = $currentPlayer");
-    });
-  }
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);
@@ -78,7 +72,7 @@ class SimonState extends State<Simon> {
             print("timer simon done");
 
             socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": currentPlayer["mac"],
+              "macPlayer": widget.currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,
             });

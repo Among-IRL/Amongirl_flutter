@@ -11,16 +11,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class QrCode extends StatefulWidget {
   final Map<String, dynamic> task;
+  final Map<String, dynamic> currentPlayer;
 
-  QrCode(this.task);
+  QrCode(this.task, this.currentPlayer);
+
   @override
   State<StatefulWidget> createState() => QrCodeState();
 }
 
 class QrCodeState extends State<QrCode> {
-
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  Map<String, dynamic> currentPlayer = {};
   SocketIoClient socketIoClient = SocketIoClient();
 
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
@@ -42,9 +41,6 @@ class QrCodeState extends State<QrCode> {
 
   @override
   void initState() {
-    whoIam();
-    // TODO: START TIMER
-    // TODO EMIT START TASK
     startTask();
     super.initState();
   }
@@ -65,6 +61,9 @@ class QrCodeState extends State<QrCode> {
       body: Column(
         children: <Widget>[
           Expanded(
+            child: Text("Temps restant : $_start"),
+          ),
+          Expanded(
             flex: 5,
             child: QRView(
               key: qrKey,
@@ -84,8 +83,8 @@ class QrCodeState extends State<QrCode> {
     );
   }
 
-  accomplished(){
-    if(result!.code == "MISSION ACCOMPLIE !"){
+  accomplished() {
+    if (result!.code == "MISSION ACCOMPLIE !") {
       return true;
     }
     return false;
@@ -104,34 +103,34 @@ class QrCodeState extends State<QrCode> {
     startTimer();
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": currentPlayer},
+      {'task': widget.task, "player": widget.currentPlayer},
     );
-  }
-
-  Future whoIam() async {
-    final SharedPreferences prefs = await _prefs;
-    print("before get player");
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      print("current player = $currentPlayer");
-    });
   }
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
-          (Timer timer) {
+      (Timer timer) {
         print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
             print("timer qr code done");
 
             socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": currentPlayer["mac"],
+              "macPlayer": widget.currentPlayer["mac"],
               "macTask": widget.task["mac"],
-              "accomplished": accomplished(),
+              "accomplished": true,
             });
+
+            socketIoClient.socket.emit(
+              "qrCodeScan",
+              {
+                "player": widget.currentPlayer,
+                "accomplished": accomplished(),
+              },
+            );
+
             timer.cancel();
           });
         } else {

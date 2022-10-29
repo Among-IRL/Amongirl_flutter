@@ -8,16 +8,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class KeyCode extends StatefulWidget {
   final Map<String, dynamic> task;
+  final Map<String, dynamic> currentPlayer;
 
-  KeyCode(this.task);
+  KeyCode(this.task, this.currentPlayer);
 
   @override
   State<StatefulWidget> createState() => KeyCodeState();
 }
 
 class KeyCodeState extends State<KeyCode> {
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  Map<String, dynamic> currentPlayer = {};
   SocketIoClient socketIoClient = SocketIoClient();
 
   TextEditingController firstInput = TextEditingController();
@@ -30,9 +29,6 @@ class KeyCodeState extends State<KeyCode> {
 
   @override
   void initState() {
-    whoIam();
-    // TODO: START TIMER
-    // TODO EMIT START TASK
     startTask();
     super.initState();
   }
@@ -55,6 +51,7 @@ class KeyCodeState extends State<KeyCode> {
           child: Column(
             children: [
               Text("Veuillez entrer le code qui vous à été donné"),
+              Text("Temps restant : $_start"),
               Form(
                 onChanged: () => codeChanged(),
                 child: Expanded(
@@ -99,19 +96,11 @@ class KeyCodeState extends State<KeyCode> {
   void startTask() {
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": currentPlayer},
+      {'task': widget.task, "player": widget.currentPlayer},
     );
     startTimer();
   }
 
-  Future whoIam() async {
-    final SharedPreferences prefs = await _prefs;
-    print("before get player");
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      print("current player = $currentPlayer");
-    });
-  }
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);
@@ -124,7 +113,7 @@ class KeyCodeState extends State<KeyCode> {
             print("timer key code done");
 
             socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": currentPlayer["mac"],
+              "macPlayer": widget.currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,
             });

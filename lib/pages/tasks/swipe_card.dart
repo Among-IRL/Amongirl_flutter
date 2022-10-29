@@ -19,7 +19,6 @@ class SwipeCard extends StatefulWidget {
 class SwipeCardState extends State<SwipeCard> {
 
 
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   SocketIoClient socketIoClient = SocketIoClient();
 
   late Timer _timer;
@@ -27,9 +26,6 @@ class SwipeCardState extends State<SwipeCard> {
 
   @override
   void initState() {
-    // whoIam();
-    // TODO: START TIMER
-    // TODO EMIT START TASK
     startTask();
     super.initState();
   }
@@ -47,7 +43,12 @@ class SwipeCardState extends State<SwipeCard> {
         title: Text("Carte"),
       ),
       body: Center(
-        child: Text("Veuillez confirmer votre identité"),
+        child: Column(
+          children: [
+            Text("Veuillez confirmer votre identité"),
+            Text("Temps restant : $_start"),
+          ],
+        ),
       ),
     );
   }
@@ -59,15 +60,6 @@ class SwipeCardState extends State<SwipeCard> {
       {'task': widget.task, "player": widget.currentPlayer},
     );
   }
-
-  // Future whoIam() async {
-  //   final SharedPreferences prefs = await _prefs;
-  //   print("before get player");
-  //   setState(() {
-  //     widget.currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-  //     print("current player = ${widget.currentPlayer}");
-  //   });
-  // }
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);

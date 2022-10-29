@@ -8,16 +8,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Socle extends StatefulWidget {
   final Map<String, dynamic> task;
+  final Map<String, dynamic> currentPlayer;
 
-  Socle(this.task);
+  Socle(this.task, this.currentPlayer);
 
   @override
   State<StatefulWidget> createState() => SocleState();
 }
 
 class SocleState extends State<Socle> {
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  Map<String, dynamic> currentPlayer = {};
   SocketIoClient socketIoClient = SocketIoClient();
 
   late Timer _timer;
@@ -25,9 +24,6 @@ class SocleState extends State<Socle> {
 
   @override
   void initState() {
-    whoIam();
-    // TODO: START TIMER
-    // TODO EMIT START TASK
     startTask();
     super.initState();
   }
@@ -50,6 +46,7 @@ class SocleState extends State<Socle> {
           child: Column(
             children: [
               Text("Veuillez mettre le socle ou il faut"),
+              Text("Temps restant : $_start"),
             ],
           ),
         ),
@@ -60,19 +57,11 @@ class SocleState extends State<Socle> {
   void startTask() {
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": currentPlayer},
+      {'task': widget.task, "player": widget.currentPlayer},
     );
     startTimer();
   }
 
-  Future whoIam() async {
-    final SharedPreferences prefs = await _prefs;
-    print("before get player");
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      print("current player = $currentPlayer");
-    });
-  }
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);
@@ -85,7 +74,7 @@ class SocleState extends State<Socle> {
             print("timer key code done");
 
             socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": currentPlayer["mac"],
+              "macPlayer": widget.currentPlayer["mac"],
               "macTask": widget.task["mac"],
               "accomplished": true,
             });
