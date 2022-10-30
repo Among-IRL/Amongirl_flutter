@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class KeyCode extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -28,6 +25,9 @@ class KeyCodeState extends State<KeyCode> {
   var taskKeyPressed = [];
 
   var taskCodeToFound = [];
+  var displayCode = ["*", "*", "*", "*"];
+
+  List<List<dynamic>> codeRemember = [[]];
 
   late Timer _timer;
   int _start = 200;
@@ -48,18 +48,29 @@ class KeyCodeState extends State<KeyCode> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Code"),
+        title: const Text("Code"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
           child: Column(
             children: [
-              Text("Veuillez entrer le code qui vous à été donné"),
+              const Text("Veuillez entrer le code qui vous à été donné"),
               Text("Temps restant : $_start"),
-              Text("Le code a rentrer est :"),
-              Text(taskCodeToFoundToString(taskCodeToFound), style: TextStyle(fontSize: 50),),
-              Text(taskCodeToFoundToString(taskKeyPressed))
+              Text(prettyCode(displayCode)),
+              displayCode == taskCodeToFound
+                  ? const Text(
+                      "Vous avez trouver le code, veuillez le taper entierement pour valider la tâche")
+                  : Container(),
+              Text(prettyCode(taskKeyPressed)),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: codeRemember.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Text(prettyCode(codeRemember[index]));
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -67,9 +78,10 @@ class KeyCodeState extends State<KeyCode> {
     );
   }
 
-  String taskCodeToFoundToString(taskCodeToFound) {
-    return taskCodeToFound.join(" ");
+  String prettyCode(list) {
+    return list.join(" ");
   }
+
   void startTask() {
     socketIoClient.socket.on('taskCodeToFound', (data) {
       print('code');
@@ -79,6 +91,10 @@ class KeyCodeState extends State<KeyCode> {
 
     socketIoClient.socket.on('taskKeyPressed', (data) {
       if (taskKeyPressed.length > 3) {
+        setState(() {
+          codeRemember.add(taskKeyPressed);
+        });
+        compareCode(taskCodeToFound, taskKeyPressed);
         taskKeyPressed = [];
       }
       taskKeyPressed.add(data);
@@ -91,13 +107,12 @@ class KeyCodeState extends State<KeyCode> {
     startTimer();
   }
 
-
   void startTimer() {
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) {
-        print("LEFT TIMER === $_start ");
+        // print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
             print("timer key code done");
@@ -118,8 +133,14 @@ class KeyCodeState extends State<KeyCode> {
     );
   }
 
-  codeChanged() {
-    //TODO : EMIT CODE CHANGE
-    print("EMIT CODE CHANGE");
+
+  void compareCode(codeToFound, codeGenerate) {
+    codeGenerate.asMap().forEach((index, value) {
+      if (value == codeToFound[index]) {
+        setState(() {
+          displayCode[index] = value;
+        });
+      }
+    });
   }
 }
