@@ -319,7 +319,7 @@ class TaskPageState extends State<TaskPage> {
         );
         break;
       case "QRCODE":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => QrCode(task, currentPlayer),
           ),

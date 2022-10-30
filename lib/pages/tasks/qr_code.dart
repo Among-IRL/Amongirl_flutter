@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:amoungirl/services/socket_io_client.dart';
@@ -29,7 +30,7 @@ class QrCodeState extends State<QrCode> {
   QRViewController? controller;
 
   late Timer _timer;
-  int _start = 10;
+  int _start = 60;
 
   @override
   void reassemble() {
@@ -97,19 +98,22 @@ class QrCodeState extends State<QrCode> {
     );
   }
 
-  accomplished() {
-    if (result!.code == "MISSION ACCOMPLIE !") {
-      return true;
-    }
-    return false;
-  }
-
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
+    bool test = false;
     controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-      });
+      if (!test) {
+        if (scanData.code == "MISSION ACCOMPLIE !") {
+          test = true;
+          socketIoClient.socket.emit(
+            "qrCodeScan",
+            {
+              "player": widget.currentPlayer,
+              "accomplished": true,
+            },
+          );
+        }
+      }
     });
   }
 
@@ -147,14 +151,6 @@ class QrCodeState extends State<QrCode> {
               "macTask": widget.task["mac"],
               "accomplished": true,
             });
-
-            socketIoClient.socket.emit(
-              "qrCodeScan",
-              {
-                "player": widget.currentPlayer,
-                "accomplished": accomplished(),
-              },
-            );
 
             timer.cancel();
           });
