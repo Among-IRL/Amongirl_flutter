@@ -30,7 +30,7 @@ class KeyCodeState extends State<KeyCode> {
   var taskCodeToFound = [];
 
   late Timer _timer;
-  int _start = 10;
+  int _start = 200;
 
   @override
   void initState() {
@@ -59,24 +59,7 @@ class KeyCodeState extends State<KeyCode> {
               Text("Temps restant : $_start"),
               Text("Le code a rentrer est :"),
               Text(taskCodeToFoundToString(taskCodeToFound), style: TextStyle(fontSize: 50),),
-              Form(
-                onChanged: () => codeChanged(),
-                child: Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      for(var element in taskKeyPressed) SizedBox(
-                        width: 50,
-                        child: TextFormField(
-                          maxLength: 1,
-                          initialValue: element,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              Text(taskCodeToFoundToString(taskKeyPressed))
             ],
           ),
         ),
@@ -89,10 +72,15 @@ class KeyCodeState extends State<KeyCode> {
   }
   void startTask() {
     socketIoClient.socket.on('taskCodeToFound', (data) {
+      print('code');
+      print(data);
       taskCodeToFound = data;
     });
 
     socketIoClient.socket.on('taskKeyPressed', (data) {
+      if (taskKeyPressed.length > 3) {
+        taskKeyPressed = [];
+      }
       taskKeyPressed.add(data);
     });
 
