@@ -304,7 +304,7 @@ class TaskPageState extends State<TaskPage> {
   goToRightTasks(Map<String, dynamic> task) {
     print("task['mac'] === ${task["mac"]}");
     switch (task["mac"]) {
-      case "Freebox-Deba":
+      case "CARDSWIPE":
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => SwipeCard(task, currentPlayer),

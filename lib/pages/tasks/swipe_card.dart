@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,16 +11,16 @@ class SwipeCard extends StatefulWidget {
   final Map<String, dynamic> task;
   final Map<String, dynamic> currentPlayer;
 
-  SwipeCard(this.task,this.currentPlayer);
+  SwipeCard(this.task, this.currentPlayer);
 
   @override
   State<StatefulWidget> createState() => SwipeCardState();
 }
 
 class SwipeCardState extends State<SwipeCard> {
-
-
   SocketIoClient socketIoClient = SocketIoClient();
+
+  Map<String, dynamic> game = {};
 
   late Timer _timer;
   int _start = 10;
@@ -55,6 +56,14 @@ class SwipeCardState extends State<SwipeCard> {
 
   void startTask() {
     startTimer();
+
+    socketIoClient.socket.on("taskCompletedTaskCardSwip", (data) {
+      print("DATA tasks completed task card swipe $data");
+
+      setState(() {
+        game = data;
+      });
+    });
     socketIoClient.socket.emit(
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
@@ -65,7 +74,7 @@ class SwipeCardState extends State<SwipeCard> {
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
-          (Timer timer) {
+      (Timer timer) {
         print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
@@ -78,6 +87,15 @@ class SwipeCardState extends State<SwipeCard> {
             });
             timer.cancel();
           });
+
+          if (game.isNotEmpty) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => TaskPage(game),
+              ),
+            );
+          }
         } else {
           setState(() {
             _start--;
