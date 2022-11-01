@@ -40,6 +40,8 @@ class TaskPageState extends State<TaskPage> {
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
 
+  List<String> namePlayers = ['JOUEUR1', 'JOUEUR2', 'JOUEUR3', 'JOUEUR4'];
+
   late Timer _timer;
 
   @override
@@ -69,12 +71,8 @@ class TaskPageState extends State<TaskPage> {
   Future<void> huntWiFis() async {
     try {
       final wiFiHunterResults = (await WiFiHunter.huntWiFiNetworks)!;
-      var contain = wiFiHunterResults.results
-          .where((element) => element.SSID == "Freebox-Deba");
-
       if (wiFiHunterResults != wiFiHunterResult &&
-          wiFiHunterResults.results.isNotEmpty &&
-          contain.isNotEmpty) {
+          wiFiHunterResults.results.isNotEmpty) {
         setState(() {
           wiFiHunterResult = wiFiHunterResults;
         });
@@ -89,6 +87,8 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    var playerToKill = wiFiHunterResult.results
+        .firstWhereOrNull((element) => namePlayers.contains(element.SSID));
     return Scaffold(
       appBar: AppBar(
         title: const Text("Liste des taches"),
@@ -121,7 +121,8 @@ class TaskPageState extends State<TaskPage> {
                 if (currentPlayer['role'] == "player" ) {
                   return;
                 }
-                print("kill");
+
+                isMacNearby(playerToKill) ? killPlayer(playerToKill) : null;
               },
               child: const Icon(Icons.power_off),
             ),
@@ -185,7 +186,7 @@ class TaskPageState extends State<TaskPage> {
             goToRightTasks(actualTask) : null;
           },
           child: Container(
-            color: isAccessTask(contain, actualTask) ? Colors.green[100] : Colors.red[100],
+            color: isAccessTask(contain, actualTask)  ? Colors.green[100] : Colors.red[100],
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -222,12 +223,28 @@ class TaskPageState extends State<TaskPage> {
     );
   }
 
-  bool isAccessTask(contain, actualTask) {
-    return !actualTask['accomplished'];
+  void killPlayer(player) {
+    socketIoClient.socket.emit('deathPlayer', {
+      'mac': player.SSID
+    });
+  }
+
+  bool isAccessTask(mac, actualTask) {
+    return !actualTask['accomplished'] && isMacNearby(mac);
   }
 
   String formatDistanceToString(contain, actualTask) {
     return getDitanceWifi(contain, actualTask) != null ? getDitanceWifi(contain, actualTask)! + 'm' : 'Pas de wifi détecté';
+  }
+
+  bool isMacNearby(mac) {
+    if(mac == null) {
+      return false;
+    }
+
+    print("isMacNearby");
+
+    return calculDistanceWifi(mac.level) <= 0.5;
   }
 
   String? getDitanceWifi(contain, actualTask) {
@@ -326,21 +343,21 @@ class TaskPageState extends State<TaskPage> {
         );
         break;
       case "SIMON":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => Simon(task, currentPlayer),
           ),
         );
         break;
       case "CABLE":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => Cable(task, currentPlayer),
           ),
         );
         break;
       case "SOCLE":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => Cable(task, currentPlayer),
           ),
