@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -24,13 +25,15 @@ class KeyCodeState extends State<KeyCode> {
 
   var taskKeyPressed = [];
 
+  Map<String, dynamic> game = {};
+
   var taskCodeToFound = [];
   // var displayCode = ["*", "*", "*", "*"];
 
   List<List<dynamic>> codeRemember = [[]];
 
   late Timer _timer;
-  int _start = 200;
+  int _start = 60;
 
   @override
   void initState() {
@@ -87,6 +90,12 @@ class KeyCodeState extends State<KeyCode> {
       taskCodeToFound = data;
     });
 
+    socketIoClient.socket.on('taskCompletedTaskKeyCode', (data){
+      setState(() {
+        game = data;
+      });
+    });
+
     socketIoClient.socket.on('taskKeyPressed', (data) {
       if (taskKeyPressed.length > 3) {
         setState(() {
@@ -119,6 +128,15 @@ class KeyCodeState extends State<KeyCode> {
               "macTask": widget.task["mac"],
               "accomplished": true,
             });
+
+            if (game.isNotEmpty) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => TaskPage(game),
+                ),
+              );
+            }
             timer.cancel();
           });
         } else {
