@@ -45,7 +45,7 @@ class SocleState extends State<Socle> {
         child: Center(
           child: Column(
             children: [
-              Text("Veuillez mettre le socle ou il faut"),
+              Text("Veuillez mettre l'objet dans le socle adéquat"),
               Text("Temps restant : $_start"),
             ],
           ),
