@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,9 @@ class SimonState extends State<Simon> {
   SocketIoClient socketIoClient = SocketIoClient();
 
   late Timer _timer;
-  int _start = 10;
+  int _start = 30;
+
+  Map<String, dynamic> game = {};
 
   String scoreSimon = '';
 
@@ -72,6 +75,14 @@ class SimonState extends State<Simon> {
       scoreSimon = data;
     });
 
+    socketIoClient.socket.on('taskCompletedSimon', (data) {
+      if(mounted) {
+        setState(() {
+          game = data;
+        });
+      }
+    });
+
     socketIoClient.socket.emit(
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
@@ -83,7 +94,6 @@ class SimonState extends State<Simon> {
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) {
-        print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
             print("timer simon done");
@@ -93,6 +103,15 @@ class SimonState extends State<Simon> {
               "macTask": widget.task["mac"],
               "accomplished": true,
             });
+
+            if(game.isNotEmpty){
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => TaskPage(game),
+                ),
+              );
+            }
             timer.cancel();
           });
         } else {
