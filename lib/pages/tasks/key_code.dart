@@ -25,7 +25,7 @@ class KeyCodeState extends State<KeyCode> {
   var taskKeyPressed = [];
 
   var taskCodeToFound = [];
-  var displayCode = ["*", "*", "*", "*"];
+  // var displayCode = ["*", "*", "*", "*"];
 
   List<List<dynamic>> codeRemember = [[]];
 
@@ -57,11 +57,11 @@ class KeyCodeState extends State<KeyCode> {
             children: [
               const Text("Veuillez entrer le code qui vous à été donné"),
               Text("Temps restant : $_start"),
-              Text(prettyCode(displayCode)),
-              displayCode == taskCodeToFound
-                  ? const Text(
-                      "Vous avez trouver le code, veuillez le taper entierement pour valider la tâche")
-                  : Container(),
+              Text(prettyCode(taskCodeToFound)),
+              // displayCode == taskCodeToFound
+              //     ? const Text(
+              //         "Vous avez trouver le code, veuillez le taper entierement pour valider la tâche")
+              //     : Container(),
               Text(prettyCode(taskKeyPressed)),
               Expanded(
                 child: ListView.builder(
@@ -84,8 +84,6 @@ class KeyCodeState extends State<KeyCode> {
 
   void startTask() {
     socketIoClient.socket.on('taskCodeToFound', (data) {
-      print('code');
-      print(data);
       taskCodeToFound = data;
     });
 
@@ -94,7 +92,6 @@ class KeyCodeState extends State<KeyCode> {
         setState(() {
           codeRemember.add(taskKeyPressed);
         });
-        compareCode(taskCodeToFound, taskKeyPressed);
         taskKeyPressed = [];
       }
       taskKeyPressed.add(data);
@@ -131,16 +128,5 @@ class KeyCodeState extends State<KeyCode> {
         }
       },
     );
-  }
-
-
-  void compareCode(codeToFound, codeGenerate) {
-    codeGenerate.asMap().forEach((index, value) {
-      if (value == codeToFound[index]) {
-        setState(() {
-          displayCode[index] = value;
-        });
-      }
-    });
   }
 }

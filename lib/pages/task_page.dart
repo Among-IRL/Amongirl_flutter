@@ -312,7 +312,7 @@ class TaskPageState extends State<TaskPage> {
         );
         break;
       case "KEYCODE":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => KeyCode(task, currentPlayer),
           ),
