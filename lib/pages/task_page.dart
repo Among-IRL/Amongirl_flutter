@@ -7,6 +7,7 @@ import 'package:amoungirl/pages/tasks/cable.dart';
 import 'package:amoungirl/pages/tasks/key_code.dart';
 import 'package:amoungirl/pages/tasks/qr_code.dart';
 import 'package:amoungirl/pages/tasks/simon.dart';
+import 'package:amoungirl/pages/tasks/socles.dart';
 import 'package:amoungirl/pages/tasks/swipe_card.dart';
 import 'package:amoungirl/pages/vote_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -354,7 +355,7 @@ class TaskPageState extends State<TaskPage> {
       case "SOCLE":
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => Cable(task, currentPlayer),
+            builder: (context) => Socle(task, currentPlayer),
           ),
         );
         break;

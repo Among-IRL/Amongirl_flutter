@@ -6,6 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../task_page.dart';
+
 class Socle extends StatefulWidget {
   final Map<String, dynamic> task;
   final Map<String, dynamic> currentPlayer;
@@ -55,6 +57,18 @@ class SocleState extends State<Socle> {
   }
 
   void startTask() {
+
+    socketIoClient.socket.on('taskCompletedSocle', (data) {
+      if (data) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(data),
+          ),
+        );
+      }
+    });
+
     socketIoClient.socket.emit(
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
