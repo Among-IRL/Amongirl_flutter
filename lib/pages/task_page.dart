@@ -44,7 +44,7 @@ class TaskPageState extends State<TaskPage> {
   bool blur = false;
   bool win = false;
 
-  List<String> namePlayers = ['JOUEUR1', 'JOUEUR2', 'JOUEUR3', 'JOUEUR4'];
+  List<String> namePlayers = ['PLAYER1', 'PLAYER2', 'PLAYER3', 'PLAYER4'];
 
   late Timer _timer;
 
@@ -147,7 +147,7 @@ class TaskPageState extends State<TaskPage> {
                   return;
                 }
                 socketIoClient.socket
-                    .emit('report', {'name': currentPlayer['name']});
+                    .emit('report', {'name': currentPlayer['name'], 'macDeadPlayer': 'PLAYER2'});
               },
               child: const Icon(Icons.campaign),
             ),

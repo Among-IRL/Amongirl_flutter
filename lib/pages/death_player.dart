@@ -21,7 +21,7 @@ class DeathPlayerPage extends StatefulWidget {
 
   DeathPlayerPage(this.game);
 
-  static const routeName = 'vote';
+  static const routeName = 'death';
 
   @override
   State<StatefulWidget> createState() => DeathPlayerPageState();
@@ -44,7 +44,7 @@ class DeathPlayerPageState extends State<DeathPlayerPage> {
 
   String whoWin = "";
 
-  List<String> namePlayers = ['JOUEUR1', 'JOUEUR2', 'JOUEUR3', 'JOUEUR4'];
+  List<String> namePlayers = ['PLAYER1', 'PLAYER2', 'PLAYER3', 'PLAYER4'];
 
   String value = "";
 
@@ -53,7 +53,6 @@ class DeathPlayerPageState extends State<DeathPlayerPage> {
   late Timer _timer;
 
   late List<dynamic> players;
-
 
   @override
   void initState() {
@@ -76,8 +75,6 @@ class DeathPlayerPageState extends State<DeathPlayerPage> {
   void dispose() {
     _timer.cancel();
     super.dispose();
-    socketIoClient.socket.clearListeners();
-
   }
 
   Future<void> huntWiFis() async {
@@ -105,7 +102,7 @@ class DeathPlayerPageState extends State<DeathPlayerPage> {
     }
     final alivePlayers = getAlivePlayers();
     var playerToKill = wiFiHunterResult.results
-        .firstWhereOrNull((element) => namePlayers.contains('JOUEUR1'));
+        .firstWhereOrNull((element) => namePlayers.contains('PLAYER1'));
     return Scaffold(
         appBar: AppBar(
           title: const Text("Vote"),
@@ -193,9 +190,9 @@ class DeathPlayerPageState extends State<DeathPlayerPage> {
   }
 
   void killPlayer() {
-    print('JOUEUR1');
+    print('PLAYER1');
     socketIoClient.socket.emit('deathPlayer', {
-      'mac': 'JOUEUR1'
+      'mac': 'PLAYER1'
     });
   }
 
