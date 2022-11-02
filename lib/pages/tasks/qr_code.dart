@@ -30,7 +30,7 @@ class QrCodeState extends State<QrCode> {
   QRViewController? controller;
 
   late Timer _timer;
-  int _start = 60;
+  int _start = 10;
 
   @override
   void reassemble() {

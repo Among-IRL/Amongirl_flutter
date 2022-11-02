@@ -1,4 +1,5 @@
 import 'package:amoungirl/config/config.dart';
+import 'package:amoungirl/pages/end_game_page.dart';
 import 'package:amoungirl/pages/game_config_page.dart';
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ void main() {
   socketIoClient.socket.on('connect', (data) {
     print("socket connect ${socketIoClient.socket.connected}");
   });
+
 }
 
 class MyApp extends StatelessWidget {

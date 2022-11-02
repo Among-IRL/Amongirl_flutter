@@ -21,6 +21,9 @@ import 'dart:async';
 import 'package:wifi_hunter/wifi_hunter.dart';
 import 'package:wifi_hunter/wifi_hunter_result.dart';
 
+import 'death_player.dart';
+import 'end_game_page.dart';
+
 class TaskPage extends StatefulWidget {
   final Map<String, dynamic> game;
 
@@ -39,6 +42,7 @@ class TaskPageState extends State<TaskPage> {
   List<dynamic> personalTasks = [];
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
+  bool win = false;
 
   List<String> namePlayers = ['JOUEUR1', 'JOUEUR2', 'JOUEUR3', 'JOUEUR4'];
 
@@ -122,6 +126,12 @@ class TaskPageState extends State<TaskPage> {
                   return;
                 }
 
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => DeathPlayerPage(widget.game),
+                  ),
+                );
+
                 isMacNearby(playerToKill) ? killPlayer(playerToKill) : null;
               },
               child: const Icon(Icons.power_off),
@@ -182,8 +192,7 @@ class TaskPageState extends State<TaskPage> {
             .firstWhereOrNull((element) => element.SSID == actualTask['mac']);
         return GestureDetector(
           onTap: () {
-            isAccessTask(contain, actualTask) ?
-            goToRightTasks(actualTask) : null;
+            goToRightTasks(actualTask);
           },
           child: Container(
             color: isAccessTask(contain, actualTask)  ? Colors.green[100] : Colors.red[100],
@@ -266,15 +275,17 @@ class TaskPageState extends State<TaskPage> {
       });
     });
 
-    // socket.on('win', (data) {
-    //   print('data win =$data');
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (BuildContext context) => EndGamePage(data),
-    //     ),
-    //   );
-    // });
+    socketIoClient.socket.on('win', (data) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => EndGamePage(data)),
+            (Route<dynamic> route) => false,
+      );
+
+      setState(() {
+        win = true;
+      });
+    });
 
     socketIoClient.socket.on('report', (data) {
       Navigator.pushReplacement(
@@ -294,13 +305,17 @@ class TaskPageState extends State<TaskPage> {
 
     socketIoClient.socket.on('buzzer', (data) {
       print('data buzzer =$data');
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (BuildContext context) => VotePage(widget.game),
         ),
       );
     });
+
+    if(win) {
+      socketIoClient.socket.clearListeners();
+    }
 
     // socket.on
   }
@@ -322,7 +337,7 @@ class TaskPageState extends State<TaskPage> {
     print("task['mac'] === ${task["mac"]}");
     switch (task["mac"]) {
       case "Freebox-Deba":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => SwipeCard(task, currentPlayer),
           ),
@@ -386,6 +401,7 @@ class TaskPageState extends State<TaskPage> {
     return pow(10, ratio);
   }
 
+
 //FIXME just for test
 // void startSabotageTimer() {
 //   const oneSec = Duration(seconds: 1);
@@ -407,3 +423,5 @@ class TaskPageState extends State<TaskPage> {
 //   );
 // }
 }
+
+
