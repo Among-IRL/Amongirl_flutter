@@ -115,6 +115,9 @@ class QrCodeState extends State<QrCode> {
         }
       }
     });
+
+    this.controller?.pauseCamera();
+    this.controller?.resumeCamera();
   }
 
   void startTask() {

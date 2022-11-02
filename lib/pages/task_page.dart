@@ -22,6 +22,9 @@ import 'dart:async';
 import 'package:wifi_hunter/wifi_hunter.dart';
 import 'package:wifi_hunter/wifi_hunter_result.dart';
 
+import 'death_player.dart';
+import 'end_game_page.dart';
+
 class TaskPage extends StatefulWidget {
   final Map<String, dynamic> game;
 
@@ -40,6 +43,9 @@ class TaskPageState extends State<TaskPage> {
   List<dynamic> personalTasks = [];
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
+  bool win = false;
+
+  List<String> namePlayers = ['JOUEUR1', 'JOUEUR2', 'JOUEUR3', 'JOUEUR4'];
 
   late Timer _timer;
 
@@ -70,12 +76,8 @@ class TaskPageState extends State<TaskPage> {
   Future<void> huntWiFis() async {
     try {
       final wiFiHunterResults = (await WiFiHunter.huntWiFiNetworks)!;
-      var contain = wiFiHunterResults.results
-          .where((element) => element.SSID == "Freebox-Deba");
-
       if (wiFiHunterResults != wiFiHunterResult &&
-          wiFiHunterResults.results.isNotEmpty &&
-          contain.isNotEmpty) {
+          wiFiHunterResults.results.isNotEmpty) {
         setState(() {
           wiFiHunterResult = wiFiHunterResults;
         });
@@ -89,6 +91,8 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    var playerToKill = wiFiHunterResult.results
+        .firstWhereOrNull((element) => namePlayers.contains(element.SSID));
     return Scaffold(
       appBar: AppBar(
         title: const Text("Liste des taches"),
@@ -121,7 +125,14 @@ class TaskPageState extends State<TaskPage> {
                 if (currentPlayer['role'] == "player") {
                   return;
                 }
-                print("kill");
+
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => DeathPlayerPage(widget.game),
+                  ),
+                );
+
+                isMacNearby(playerToKill) ? killPlayer(playerToKill) : null;
               },
               child: const Icon(Icons.power_off),
             ),
@@ -227,13 +238,28 @@ class TaskPageState extends State<TaskPage> {
     );
   }
 
-  bool isAccessTask(contain, actualTask) {
-    return !actualTask['accomplished'];
+  void killPlayer(player) {
+    socketIoClient.socket.emit('deathPlayer', {
+      'mac': player.SSID
+    });
+  }
+
+  bool isAccessTask(mac, actualTask) {
+    return !actualTask['accomplished'] && isMacNearby(mac);
   }
 
   String formatDistanceToString(contain, actualTask) {
-    return getDitanceWifi(contain, actualTask) != null ? getDitanceWifi(
-        contain, actualTask)! + 'm' : 'Pas de wifi détecté';
+    return getDitanceWifi(contain, actualTask) != null ? getDitanceWifi(contain, actualTask)! + 'm' : 'Pas de wifi détecté';
+  }
+
+  bool isMacNearby(mac) {
+    if(mac == null) {
+      return false;
+    }
+
+    print("isMacNearby");
+
+    return calculDistanceWifi(mac.level) <= 0.5;
   }
 
   String? getDitanceWifi(contain, actualTask) {
@@ -255,15 +281,17 @@ class TaskPageState extends State<TaskPage> {
       });
     });
 
-    // socket.on('win', (data) {
-    //   print('data win =$data');
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (BuildContext context) => EndGamePage(data),
-    //     ),
-    //   );
-    // });
+    socketIoClient.socket.on('win', (data) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => EndGamePage(data)),
+            (Route<dynamic> route) => false,
+      );
+
+      setState(() {
+        win = true;
+      });
+    });
 
     socketIoClient.socket.on('report', (data) {
       Navigator.pushReplacement(
@@ -276,7 +304,6 @@ class TaskPageState extends State<TaskPage> {
 
     socketIoClient.socket.on('sabotage', (data) {
       print("sabotage");
-      print("DATA == $data");
       setState(() {
         blur = data;
       });
@@ -290,13 +317,17 @@ class TaskPageState extends State<TaskPage> {
 
     socketIoClient.socket.on('buzzer', (data) {
       print('data buzzer =$data');
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (BuildContext context) => VotePage(widget.game),
         ),
       );
     });
+
+    if(win) {
+      socketIoClient.socket.clearListeners();
+    }
 
     // socket.on
   }
@@ -318,7 +349,7 @@ class TaskPageState extends State<TaskPage> {
     print("task['mac'] === ${task["mac"]}");
     switch (task["mac"]) {
       case "CARDSWIPE":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => SwipeCard(task, currentPlayer),
           ),
@@ -339,21 +370,21 @@ class TaskPageState extends State<TaskPage> {
         );
         break;
       case "SIMON":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => Simon(task, currentPlayer),
           ),
         );
         break;
       case "CABLE":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => Cable(task, currentPlayer),
           ),
         );
         break;
       case "SOCLE":
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => Socle(task, currentPlayer),
           ),
