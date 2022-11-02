@@ -39,6 +39,7 @@ dependencies:
   qr_code_scanner: ^1.0.1
   wifi_scan: ^0.4.0+1
   wifi_hunter: ^1.1.0+1
+  flutter_expandable_fab: ^1.6.0
 
 dev_dependencies:
   flutter_test:

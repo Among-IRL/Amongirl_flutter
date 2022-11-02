@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:amoungirl/config/config.dart';
@@ -58,9 +59,11 @@ class DeathPlayerPageState extends State<DeathPlayerPage> {
   void initState() {
     onSocket();
     whoIam();
-    _timer = Timer.periodic(const Duration(seconds: 2), (Timer t) async {
-      await huntWiFis();
-    });
+    if(Platform.isAndroid) {
+      _timer = Timer.periodic(const Duration(seconds: 2), (Timer t) async {
+        await huntWiFis();
+      });
+    }
     super.initState();
   }
 
