@@ -147,7 +147,7 @@ class TaskPageState extends State<TaskPage> {
                   return;
                 }
                 socketIoClient.socket
-                    .emit('report', {'name': currentPlayer['name']});
+                    .emit('report', {'name': currentPlayer['name'], 'macDeadPlayer': 'PLAYER2'});
               },
               child: const Icon(Icons.campaign),
             ),
@@ -174,10 +174,7 @@ class TaskPageState extends State<TaskPage> {
   Widget tasksList(List<dynamic> tasks) {
     if (tasks.isEmpty) {
       return Container(
-          height: MediaQuery
-              .of(context)
-              .size
-              .height / 2,
+          height: MediaQuery.of(context).size.height / 2,
           child: const Padding(
             padding: EdgeInsets.symmetric(vertical: 15.0),
             child: Text("Pas de taches pour le moment"),
@@ -199,9 +196,7 @@ class TaskPageState extends State<TaskPage> {
             goToRightTasks(actualTask) : null;
           },
           child: Container(
-            color: isAccessTask(contain, actualTask)
-                ? Colors.green[100]
-                : Colors.red[100],
+            color: isAccessTask(contain, actualTask) ? Colors.green[100] : Colors.red[100],
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -215,13 +210,13 @@ class TaskPageState extends State<TaskPage> {
                       ),
                       actualTask['accomplished']
                           ? const Icon(
-                        Icons.check,
-                        color: Colors.green,
-                      )
+                              Icons.check,
+                              color: Colors.green,
+                            )
                           : const Icon(
-                        Icons.close,
-                        color: Colors.red,
-                      ),
+                              Icons.close,
+                              color: Colors.red,
+                            ),
                     ],
                   ),
                   Row(children: [
@@ -275,7 +270,7 @@ class TaskPageState extends State<TaskPage> {
   void onSocket() {
     socketIoClient.socket.on('task', (data) {
       final myTask =
-      personalTasks.indexWhere((task) => task['mac'] == data['mac']);
+          personalTasks.indexWhere((task) => task['mac'] == data['mac']);
       setStateIfMounted(() {
         personalTasks[myTask] = data;
       });
