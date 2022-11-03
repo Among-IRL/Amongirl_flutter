@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:math';
+import 'dart:io';
 
-import 'package:amoungirl/config/config.dart';
 import 'package:amoungirl/pages/roles_allocation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../services/socket_io_client.dart';
 
@@ -32,7 +32,12 @@ class GameConfigPageState extends State<GameConfigPage> {
 
   @override
   void initState() {
-    //FIXME : reset shared pref
+    clearPrefs();
+
+    if (Platform.isAndroid) {
+      askConfig();
+    }
+
     initializeSocket();
     socketIoClient.socket.emit('getGameData');
     print("inin game");
@@ -219,6 +224,30 @@ class GameConfigPageState extends State<GameConfigPage> {
       if (dataPlayer['role'] == "saboteur") {
         player['role'] = dataPlayer['role'];
         prefs.setString("currentPlayer", json.encode(player));
+      }
+    }
+  }
+
+  void clearPrefs() async {
+    print(" \n !! CLEAR PREFS !! \n");
+    final SharedPreferences prefs = await _prefs;
+    prefs.clear();
+  }
+
+  void askConfig() async {
+    var status = await Permission.location.status;
+    if (status.isGranted) {
+      return;
+    } else {
+      Map<Permission, PermissionStatus> status =
+          await [Permission.location].request();
+      print("status == $status");
+
+      print(
+          "Permission.location.isPermanentlyDenied = ${Permission.location.isDenied}");
+      if (await Permission.location.isDenied) {
+        print("is permanently denied");
+        openAppSettings();
       }
     }
   }

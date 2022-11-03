@@ -70,7 +70,6 @@ class TaskPageState extends State<TaskPage> {
 
   Future<void> huntWiFis() async {
     try {
-      print("wifi hunter iciiii");
       final wiFiHunterResults = (await WiFiHunter.huntWiFiNetworks)!;
       if (wiFiHunterResults != wiFiHunterResult &&
           wiFiHunterResults.results.isNotEmpty) {
@@ -89,6 +88,7 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   Widget build(BuildContext context) {
+
     var playerToKill = wiFiHunterResult.results.firstWhereOrNull(
         (element) => getAllPlayersMac().contains(element.SSID));
 
@@ -135,10 +135,10 @@ class TaskPageState extends State<TaskPage> {
                 if (currentPlayer['role'] == "player") {
                   return;
                 }
-
                 if (backup || Platform.isIOS) {
                   _showMyDialog();
                 } else {
+                  print("player to kill = ${playerToKill?.SSID}");
                   isMacNearby(playerToKill)
                       ? killPlayer(playerToKill)
                       : showSnackBar();
@@ -269,7 +269,7 @@ class TaskPageState extends State<TaskPage> {
     }
 
     print("calculDistanceWifi(mac.level) ${calculDistanceWifi(mac.level)}");
-    return calculDistanceWifi(mac.level) <= 0.8;
+    return calculDistanceWifi(mac.level) <= 2.0;
   }
 
   String? getDistanceToWifi(contain, actualTask) {
@@ -345,7 +345,13 @@ class TaskPageState extends State<TaskPage> {
     final SharedPreferences prefs = await _prefs;
     if(mounted) {
       setState(() {
-        currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+        final current = prefs.getString("currentPlayer");
+        print("CURRENT = $current");
+        if(current == null){
+          print("current est null");
+        }else {
+          currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+        }
       });
     }
   }
@@ -499,7 +505,7 @@ class TaskPageState extends State<TaskPage> {
   Future<void> _showMyDialog() async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: true, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Tuer un joueur'),

@@ -37,9 +37,8 @@ dependencies:
   socket_io_client: ^2.0.0-beta.4-nullsafety.0
   shared_preferences: ^2.0.13
   qr_code_scanner: ^1.0.1
-  wifi_scan: ^0.4.0+1
   wifi_hunter: ^1.1.0+1
-  flutter_expandable_fab: ^1.6.0
+  permission_handler: ^9.2.0
 
 dev_dependencies:
   flutter_test:
