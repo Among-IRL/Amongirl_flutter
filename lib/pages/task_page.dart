@@ -41,6 +41,7 @@ class TaskPageState extends State<TaskPage> {
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
   bool blockTask = false;
+  String playerStatusText = "Vous êtes vivant !";
 
   List<dynamic> alivePlayers = [];
 
@@ -174,6 +175,7 @@ class TaskPageState extends State<TaskPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
+            Text(playerStatusText),
             BackdropFilter(
               filter: blur
                   ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
@@ -345,10 +347,12 @@ class TaskPageState extends State<TaskPage> {
 
             if(!data['isAlive']) {
               blockTask = true;
+              playerStatusText = "Vous êtes mort !";
             }
 
             if (data['isDeadReport']) {
               blockTask = false;
+              playerStatusText = "Vous êtes un fantôme !";
             }
           }
         });
