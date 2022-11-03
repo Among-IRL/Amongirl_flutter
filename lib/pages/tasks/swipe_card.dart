@@ -24,6 +24,8 @@ class SwipeCardState extends State<SwipeCard> {
 
   String message = "";
 
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
   late Timer _timer;
   int _start = 10;
 
@@ -79,6 +81,8 @@ class SwipeCardState extends State<SwipeCard> {
           'player': widget.currentPlayer
         });
 
+        updateCurrentPlayer(data['isAlive']);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -103,6 +107,17 @@ class SwipeCardState extends State<SwipeCard> {
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
     );
+  }
+
+  updateCurrentPlayer(isAlive) async {
+    final SharedPreferences prefs = await _prefs;
+    final current = prefs.getString("currentPlayer");
+    if (current != null) {
+      final currentDecoded = json.decode(current);
+      currentDecoded['isAlive'] = isAlive;
+      prefs.setString("currentPlayer", json.encode(currentDecoded));
+
+    }
   }
 
   void startTimer() {

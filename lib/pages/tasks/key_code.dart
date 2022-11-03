@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class KeyCode extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -22,6 +24,8 @@ class KeyCodeState extends State<KeyCode> {
   TextEditingController secondInput = TextEditingController();
   TextEditingController thirdInput = TextEditingController();
   TextEditingController fourthInput = TextEditingController();
+
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   var taskKeyPressed = [];
 
@@ -122,6 +126,7 @@ class KeyCodeState extends State<KeyCode> {
           'task': widget.task,
           'player': widget.currentPlayer
         });
+        updateCurrentPlayer(data['isAlive']);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -150,6 +155,16 @@ class KeyCodeState extends State<KeyCode> {
     startTimer();
   }
 
+  updateCurrentPlayer(isAlive) async {
+    final SharedPreferences prefs = await _prefs;
+    final current = prefs.getString("currentPlayer");
+    if (current != null) {
+      final currentDecoded = json.decode(current);
+      currentDecoded['isAlive'] = isAlive;
+      prefs.setString("currentPlayer", json.encode(currentDecoded));
+
+    }
+  }
   void startTimer() {
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(

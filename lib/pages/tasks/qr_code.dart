@@ -29,6 +29,8 @@ class QrCodeState extends State<QrCode> {
   Barcode? result;
   QRViewController? controller;
 
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
   Map<String, dynamic> game = {};
 
   String message = "";
@@ -157,6 +159,8 @@ class QrCodeState extends State<QrCode> {
           'player': widget.currentPlayer
         });
 
+        updateCurrentPlayer(data['isAlive']);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -172,6 +176,17 @@ class QrCodeState extends State<QrCode> {
     );
 
     startTimer();
+  }
+
+  updateCurrentPlayer(isAlive) async {
+    final SharedPreferences prefs = await _prefs;
+    final current = prefs.getString("currentPlayer");
+    if (current != null) {
+      final currentDecoded = json.decode(current);
+      currentDecoded['isAlive'] = isAlive;
+      prefs.setString("currentPlayer", json.encode(currentDecoded));
+
+    }
   }
 
   void startTimer() {

@@ -27,6 +27,8 @@ class SimonState extends State<Simon> {
 
   String message = "";
 
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
   String scoreSimon = '';
 
   @override
@@ -95,6 +97,8 @@ class SimonState extends State<Simon> {
           'player': widget.currentPlayer
         });
 
+        updateCurrentPlayer(data['isAlive']);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -119,6 +123,17 @@ class SimonState extends State<Simon> {
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
     );
+  }
+
+  updateCurrentPlayer(isAlive) async {
+    final SharedPreferences prefs = await _prefs;
+    final current = prefs.getString("currentPlayer");
+    if (current != null) {
+      final currentDecoded = json.decode(current);
+      currentDecoded['isAlive'] = isAlive;
+      prefs.setString("currentPlayer", json.encode(currentDecoded));
+
+    }
   }
 
   void startTimer() {
