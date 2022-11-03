@@ -101,8 +101,6 @@ class KeyCodeState extends State<KeyCode> {
           game = data;
         });
       }
-
-
     });
 
     socketIoClient.socket.on('taskNotComplete', (data){
@@ -113,6 +111,15 @@ class KeyCodeState extends State<KeyCode> {
             builder: (BuildContext context) => TaskPage(data['game']),
           ),
         );
+      }
+    });
+
+    socketIoClient.socket.on('deathPlayer', (data){
+      if(data['mac'] == widget.currentPlayer['mac']) {
+        socketIoClient.socket.emit('stopTask', {
+          'task': widget.task,
+          'macPlayer': widget.currentPlayer
+        });
       }
     });
 
@@ -157,6 +164,12 @@ class KeyCodeState extends State<KeyCode> {
                 ),
               );
             }
+
+            socketIoClient.socket.emit('stopTask', {
+              'task': widget.task,
+              'macPlayer': widget.currentPlayer
+            });
+
             timer.cancel();
           });
         } else {

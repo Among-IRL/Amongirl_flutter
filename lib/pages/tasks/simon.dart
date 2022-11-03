@@ -87,6 +87,15 @@ class SimonState extends State<Simon> {
       }
     });
 
+    socketIoClient.socket.on('deathPlayer', (data){
+      if(data['mac'] == widget.currentPlayer['mac']) {
+        socketIoClient.socket.emit('stopTask', {
+          'task': widget.task,
+          'macPlayer': widget.currentPlayer
+        });
+      }
+    });
+
     socketIoClient.socket.on('taskNotComplete', (data){
       if(mounted) {
         Navigator.pushReplacement(
@@ -127,6 +136,12 @@ class SimonState extends State<Simon> {
                 ),
               );
             }
+
+            socketIoClient.socket.emit('stopTask', {
+              'task': widget.task,
+              'macPlayer': widget.currentPlayer
+            });
+
             timer.cancel();
           });
         } else {
