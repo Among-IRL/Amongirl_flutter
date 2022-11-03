@@ -76,7 +76,7 @@ class SocleState extends State<Socle> {
       if(data['mac'] == widget.currentPlayer['mac']) {
         socketIoClient.socket.emit('stopTask', {
           'task': widget.task,
-          'macPlayer': widget.currentPlayer
+          'player': widget.currentPlayer
         });
       }
     });
@@ -124,7 +124,7 @@ class SocleState extends State<Socle> {
 
           socketIoClient.socket.emit('stopTask', {
             'task': widget.task,
-            'macPlayer': widget.currentPlayer
+            'player': widget.currentPlayer
           });
 
           timer.cancel();

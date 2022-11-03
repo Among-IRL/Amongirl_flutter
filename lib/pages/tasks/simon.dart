@@ -92,7 +92,7 @@ class SimonState extends State<Simon> {
       if(data['mac'] == widget.currentPlayer['mac']) {
         socketIoClient.socket.emit('stopTask', {
           'task': widget.task,
-          'macPlayer': widget.currentPlayer
+          'player': widget.currentPlayer
         });
       }
     });
@@ -139,7 +139,7 @@ class SimonState extends State<Simon> {
 
           socketIoClient.socket.emit('stopTask', {
             'task': widget.task,
-            'macPlayer': widget.currentPlayer
+            'player': widget.currentPlayer
           });
 
           timer.cancel();

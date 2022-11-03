@@ -154,7 +154,7 @@ class QrCodeState extends State<QrCode> {
       if(data['mac'] == widget.currentPlayer['mac']) {
         socketIoClient.socket.emit('stopTask', {
           'task': widget.task,
-          'macPlayer': widget.currentPlayer
+          'player': widget.currentPlayer
         });
       }
     });
@@ -193,7 +193,7 @@ class QrCodeState extends State<QrCode> {
 
           socketIoClient.socket.emit('stopTask', {
             'task': widget.task,
-            'macPlayer': widget.currentPlayer
+            'player': widget.currentPlayer
           });
 
           timer.cancel();

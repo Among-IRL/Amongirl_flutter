@@ -76,7 +76,7 @@ class SwipeCardState extends State<SwipeCard> {
       if(data['mac'] == widget.currentPlayer['mac']) {
         socketIoClient.socket.emit('stopTask', {
           'task': widget.task,
-          'macPlayer': widget.currentPlayer
+          'player': widget.currentPlayer
         });
       }
     });
@@ -123,7 +123,7 @@ class SwipeCardState extends State<SwipeCard> {
 
           socketIoClient.socket.emit('stopTask', {
             'task': widget.task,
-            'macPlayer': widget.currentPlayer
+            'player': widget.currentPlayer
           });
 
           timer.cancel();

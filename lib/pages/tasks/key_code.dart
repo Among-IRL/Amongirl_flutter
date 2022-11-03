@@ -120,7 +120,7 @@ class KeyCodeState extends State<KeyCode> {
       if(data['mac'] == widget.currentPlayer['mac']) {
         socketIoClient.socket.emit('stopTask', {
           'task': widget.task,
-          'macPlayer': widget.currentPlayer
+          'player': widget.currentPlayer
         });
       }
     });
@@ -170,7 +170,7 @@ class KeyCodeState extends State<KeyCode> {
 
           socketIoClient.socket.emit('stopTask', {
             'task': widget.task,
-            'macPlayer': widget.currentPlayer
+            'player': widget.currentPlayer
           });
 
           timer.cancel();
