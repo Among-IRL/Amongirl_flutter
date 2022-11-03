@@ -190,6 +190,9 @@ class GameConfigPageState extends State<GameConfigPage> {
 
   Future savePlayerInStorage(Map<String, dynamic> player) async {
     final SharedPreferences prefs = await _prefs;
+
+    print("player['name'] = ${player['name']}");
+    print("PLAYER == $player");
     if (player['name'] == pseudoController.text) {
       print("name == pref ok ?");
       await prefs.setString("currentPlayer", json.encode(player));
