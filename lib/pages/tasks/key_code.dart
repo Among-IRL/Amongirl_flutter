@@ -126,7 +126,7 @@ class KeyCodeState extends State<KeyCode> {
           'task': widget.task,
           'player': widget.currentPlayer
         });
-        updateCurrentPlayer(data['isAlive']);
+        updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -155,12 +155,14 @@ class KeyCodeState extends State<KeyCode> {
     startTimer();
   }
 
-  updateCurrentPlayer(isAlive) async {
+
+  updateCurrentPlayer(isAlive, isDeadReport) async {
     final SharedPreferences prefs = await _prefs;
     final current = prefs.getString("currentPlayer");
     if (current != null) {
       final currentDecoded = json.decode(current);
       currentDecoded['isAlive'] = isAlive;
+      currentDecoded['isDeadReport'] = isDeadReport;
       prefs.setString("currentPlayer", json.encode(currentDecoded));
 
     }
