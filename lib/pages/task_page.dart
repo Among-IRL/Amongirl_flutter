@@ -55,7 +55,7 @@ class TaskPageState extends State<TaskPage> {
     getAlivePlayers(widget.game['players']);
     whoIam();
     getPersonalTasks();
-    getPlayerStatus();
+
     print("ENABLED BACKUP = ${enabledBackup()}");
     if (!enabledBackup()) {
       _timer = Timer.periodic(const Duration(seconds: 2), (Timer t) async {
@@ -65,6 +65,8 @@ class TaskPageState extends State<TaskPage> {
     onSocket();
     super.initState();
   }
+
+
 
   @override
   void dispose() {
@@ -94,6 +96,7 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   Widget build(BuildContext context) {
+    getPlayerStatus();
     var playerToKill = wiFiHunterResult.results.firstWhereOrNull(
         (element) => getAllPlayersMac().contains(element.SSID));
 
@@ -355,17 +358,18 @@ class TaskPageState extends State<TaskPage> {
 
   Future whoIam() async {
     final SharedPreferences prefs = await _prefs;
-    if (mounted) {
-      setState(() {
-        final current = prefs.getString("currentPlayer");
-        print("CURRENT = $current");
-        if (current == null) {
-          print("current est null");
-        } else {
+
+    final current = prefs.getString("currentPlayer");
+    print("CURRENT avant = $current");
+    if (current == null) {
+      print("current est null");
+    } else {
+      if (mounted) {
+        setState(() {
           currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-          print("current player = $currentPlayer");
-        }
-      });
+          print("current player apres = $currentPlayer");
+        });
+      }
     }
   }
 
@@ -566,7 +570,8 @@ class TaskPageState extends State<TaskPage> {
   }
 
   getPlayerStatus() {
-    if(currentPlayer.isNotEmpty) {
+    print("je passe ici");
+    if (currentPlayer.isNotEmpty) {
       if (currentPlayer['isAlive']) {
         playerStatusText = "Vous êtes vivant !";
         blockTask = false;

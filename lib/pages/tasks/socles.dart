@@ -74,6 +74,7 @@ class SocleState extends State<Socle> {
     });
 
     socketIoClient.socket.on('deathPlayer', (data){
+      print("DATA == $data");
       if(data['mac'] == widget.currentPlayer['mac']) {
         socketIoClient.socket.emit('stopTask', {
           'task': widget.task,
@@ -112,10 +113,12 @@ class SocleState extends State<Socle> {
   updateCurrentPlayer(isAlive) async {
     final SharedPreferences prefs = await _prefs;
     final current = prefs.getString("currentPlayer");
+    print("current avant = $current");
     if (current != null) {
       final currentDecoded = json.decode(current);
       currentDecoded['isAlive'] = isAlive;
       prefs.setString("currentPlayer", json.encode(currentDecoded));
+      print("current apres = $currentDecoded");
 
     }
   }
