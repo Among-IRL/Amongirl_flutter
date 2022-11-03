@@ -28,6 +28,7 @@ class KeyCodeState extends State<KeyCode> {
   Map<String, dynamic> game = {};
 
   var taskCodeToFound = [];
+
   // var displayCode = ["*", "*", "*", "*"];
 
   List<List<dynamic>> codeRemember = [[]];
@@ -94,17 +95,18 @@ class KeyCodeState extends State<KeyCode> {
       taskCodeToFound = data;
     });
 
-    socketIoClient.socket.on('taskCompletedTaskKeyCode', (data){
-      if(mounted){
+    socketIoClient.socket.on('taskCompletedTaskKeyCode', (data) {
+      if (mounted) {
         setState(() {
-          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          message =
+              "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
           game = data;
         });
       }
     });
 
-    socketIoClient.socket.on('taskNotComplete', (data){
-      if(mounted) {
+    socketIoClient.socket.on('taskNotComplete', (data) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -125,9 +127,11 @@ class KeyCodeState extends State<KeyCode> {
 
     socketIoClient.socket.on('taskKeyPressed', (data) {
       if (taskKeyPressed.length > 3) {
-        setState(() {
-          codeRemember.add(taskKeyPressed);
-        });
+        if (mounted) {
+          setState(() {
+            codeRemember.add(taskKeyPressed);
+          });
+        }
         taskKeyPressed = [];
       }
       taskKeyPressed.add(data);
@@ -147,35 +151,35 @@ class KeyCodeState extends State<KeyCode> {
       (Timer timer) {
         // print("LEFT TIMER === $_start ");
         if (_start == 0) {
-          setState(() {
-            print("timer key code done");
+          print("timer key code done");
 
-            socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": widget.currentPlayer["mac"],
-              "macTask": widget.task["mac"],
-              "accomplished": true,
-            });
-
-            if (game.isNotEmpty) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => TaskPage(game),
-                ),
-              );
-            }
-
-            socketIoClient.socket.emit('stopTask', {
-              'task': widget.task,
-              'macPlayer': widget.currentPlayer
-            });
-
-            timer.cancel();
+          socketIoClient.socket.emit("timerTaskDone", {
+            "macPlayer": widget.currentPlayer["mac"],
+            "macTask": widget.task["mac"],
+            "accomplished": true,
           });
+
+          if (game.isNotEmpty) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => TaskPage(game),
+              ),
+            );
+          }
+
+          socketIoClient.socket.emit('stopTask', {
+            'task': widget.task,
+            'macPlayer': widget.currentPlayer
+          });
+
+          timer.cancel();
         } else {
-          setState(() {
-            _start--;
-          });
+          if (mounted) {
+            setState(() {
+              _start--;
+            });
+          }
         }
       },
     );

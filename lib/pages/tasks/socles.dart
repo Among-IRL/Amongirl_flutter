@@ -62,14 +62,14 @@ class SocleState extends State<Socle> {
   }
 
   void startTask() {
-
     socketIoClient.socket.on('taskCompletedSocle', (data) {
-     if(mounted){
-       setState(() {
-         message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
-         game = data;
-       });
-     }
+      if (mounted) {
+        setState(() {
+          message =
+              "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          game = data;
+        });
+      }
     });
 
     socketIoClient.socket.on('deathPlayer', (data){
@@ -81,9 +81,8 @@ class SocleState extends State<Socle> {
       }
     });
 
-
-    socketIoClient.socket.on('taskNotComplete', (data){
-      if(mounted) {
+    socketIoClient.socket.on('taskNotComplete', (data) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -100,42 +99,41 @@ class SocleState extends State<Socle> {
     startTimer();
   }
 
-
   void startTimer() {
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) {
         if (_start == 0) {
-          setState(() {
-            print("timer key code done");
+          print("timer key code done");
 
-            socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": widget.currentPlayer["mac"],
-              "macTask": widget.task["mac"],
-              "accomplished": true,
-            });
-
-            if (game.isNotEmpty) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => TaskPage(game),
-                ),
-              );
-            }
-
-            socketIoClient.socket.emit('stopTask', {
-              'task': widget.task,
-              'macPlayer': widget.currentPlayer
-            });
-
-            timer.cancel();
+          socketIoClient.socket.emit("timerTaskDone", {
+            "macPlayer": widget.currentPlayer["mac"],
+            "macTask": widget.task["mac"],
+            "accomplished": true,
           });
+
+          if (game.isNotEmpty) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => TaskPage(game),
+              ),
+            );
+          }
+
+          socketIoClient.socket.emit('stopTask', {
+            'task': widget.task,
+            'macPlayer': widget.currentPlayer
+          });
+
+          timer.cancel();
         } else {
-          setState(() {
-            _start--;
-          });
+          if (mounted) {
+            setState(() {
+              _start--;
+            });
+          }
         }
       },
     );

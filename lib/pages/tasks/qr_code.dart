@@ -59,11 +59,10 @@ class QrCodeState extends State<QrCode> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     var scanArea = (MediaQuery.of(context).size.width < 400 ||
-        MediaQuery.of(context).size.height < 400)
+            MediaQuery.of(context).size.height < 400)
         ? 150.0
         : 300.0;
 
@@ -95,11 +94,11 @@ class QrCodeState extends State<QrCode> {
               child: (result != null)
                   ? Text(result!.code.toString())
                   : Column(
-                    children: [
-                      Text('Scan a code'),
-                      Text(message),
-                    ],
-                  ),
+                      children: [
+                        Text('Scan a code'),
+                        Text(message),
+                      ],
+                    ),
             ),
           )
         ],
@@ -131,18 +130,17 @@ class QrCodeState extends State<QrCode> {
 
   void startTask() {
     socketIoClient.socket.on("taskCompletedQrCode", (data) {
-
-      if(mounted){
+      if (mounted) {
         setState(() {
-          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          message =
+              "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
           game = data;
         });
       }
-
     });
 
-    socketIoClient.socket.on('taskNotComplete', (data){
-      if(mounted) {
+    socketIoClient.socket.on('taskNotComplete', (data) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -167,7 +165,6 @@ class QrCodeState extends State<QrCode> {
     );
 
     startTimer();
-
   }
 
   void startTimer() {
@@ -177,29 +174,29 @@ class QrCodeState extends State<QrCode> {
       (Timer timer) {
         print("LEFT TIMER === $_start ");
         if (_start == 0) {
-          setState(() {
-            print("timer qr code done");
+          print("timer qr code done");
 
-            socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": widget.currentPlayer["mac"],
-              "macTask": widget.task["mac"],
-              "accomplished": true,
-            });
-            if (game.isNotEmpty) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => TaskPage(game),
-                ),
-              );
-            }
-            socketIoClient.socket.emit('stopTask', {
-              'task': widget.task,
-              'macPlayer': widget.currentPlayer
-            });
-
-            timer.cancel();
+          socketIoClient.socket.emit("timerTaskDone", {
+            "macPlayer": widget.currentPlayer["mac"],
+            "macTask": widget.task["mac"],
+            "accomplished": true,
           });
+
+          if (game.isNotEmpty) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => TaskPage(game),
+              ),
+            );
+          }
+
+          socketIoClient.socket.emit('stopTask', {
+            'task': widget.task,
+            'macPlayer': widget.currentPlayer
+          });
+
+          timer.cancel();
         } else {
           setState(() {
             _start--;
@@ -209,4 +206,3 @@ class QrCodeState extends State<QrCode> {
     );
   }
 }
-

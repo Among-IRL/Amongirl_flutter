@@ -67,20 +67,20 @@ class EndGamePageState extends State<EndGamePage> {
       oneSec,
       (Timer timer) {
         if (_start == 0) {
-          setState(() {
-            print("timer done");
-            timer.cancel();
+          print("timer done");
+          timer.cancel();
 
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => GameConfigPage()),
-              (Route<dynamic> route) => false,
-            );
-          });
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => GameConfigPage()),
+            (Route<dynamic> route) => false,
+          );
         } else {
-          setState(() {
-            _start--;
-          });
+          if (mounted) {
+            setState(() {
+              _start--;
+            });
+          }
         }
       },
     );

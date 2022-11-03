@@ -63,13 +63,6 @@ class TaskPageState extends State<TaskPage> {
   }
 
   @override
-  void setState(fn) {
-    if (mounted) {
-      super.setState(fn);
-    }
-  }
-
-  @override
   void dispose() {
     _timer.cancel();
     super.dispose();
@@ -81,9 +74,11 @@ class TaskPageState extends State<TaskPage> {
       final wiFiHunterResults = (await WiFiHunter.huntWiFiNetworks)!;
       if (wiFiHunterResults != wiFiHunterResult &&
           wiFiHunterResults.results.isNotEmpty) {
-        setState(() {
-          wiFiHunterResult = wiFiHunterResults;
-        });
+        if(mounted) {
+          setState(() {
+            wiFiHunterResult = wiFiHunterResults;
+          });
+        }
       }
     } on PlatformException catch (exception) {
       print(exception.toString());
@@ -338,17 +333,21 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socketIoClient.socket.on('deathPlayer', (data) {
-      setState(() {
-        getAlivePlayers(data['players']);
-      });
+      if(mounted) {
+        setState(() {
+          getAlivePlayers(data['players']);
+        });
+      }
     });
   }
 
   Future whoIam() async {
     final SharedPreferences prefs = await _prefs;
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-    });
+    if(mounted) {
+      setState(() {
+        currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+      });
+    }
   }
 
   void setStateIfMounted(f) {
@@ -409,9 +408,11 @@ class TaskPageState extends State<TaskPage> {
     List<dynamic> players = widget.game['players'];
     Map<String, dynamic> player =
         players.firstWhere((player) => player['mac'] == currentPlayer['mac']);
-    setState(() {
-      personalTasks = player['personalTasks'];
-    });
+    if(mounted) {
+      setState(() {
+        personalTasks = player['personalTasks'];
+      });
+    }
   }
 
   num calculDistanceWifi(int rssi) {
@@ -478,6 +479,8 @@ class TaskPageState extends State<TaskPage> {
     for (var p in alivePlayers) {
       playersMac.add(p['mac']);
     }
+
+    print("PLAYER MAC == ${playersMac}");
     return playersMac;
   }
 
@@ -486,9 +489,11 @@ class TaskPageState extends State<TaskPage> {
         .where((player) =>
             player['isAlive'] == true && player['role'] != 'saboteur')
         .toList();
-    setState(() {
-      alivePlayers = players;
-    });
+    if(mounted) {
+      setState(() {
+        alivePlayers = players;
+      });
+    }
   }
 
   Future<void> _showMyDialog() async {
