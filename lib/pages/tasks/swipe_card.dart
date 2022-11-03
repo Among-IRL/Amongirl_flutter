@@ -24,6 +24,8 @@ class SwipeCardState extends State<SwipeCard> {
 
   String message = "";
 
+  String playerWhoCompleteTask = "";
+
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   late Timer _timer;
@@ -63,13 +65,14 @@ class SwipeCardState extends State<SwipeCard> {
     startTimer();
 
     socketIoClient.socket.on("taskCompletedTaskCardSwip", (data) {
-      print("DATA tasks completed task card swipe $data");
+      print("DATA tasks completed task card swipe ${data["game"]}");
 
       if (mounted) {
         setState(() {
+          playerWhoCompleteTask = data['macPlayer'];
           message =
               "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
-          game = data;
+          game = data["game"];
         });
       }
     });
@@ -135,7 +138,7 @@ class SwipeCardState extends State<SwipeCard> {
             "accomplished": true,
           });
 
-          if (game.isNotEmpty) {
+          if (game.isNotEmpty && playerWhoCompleteTask == widget.currentPlayer['mac']) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
