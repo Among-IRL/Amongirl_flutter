@@ -40,6 +40,7 @@ class TaskPageState extends State<TaskPage> {
   List<dynamic> personalTasks = [];
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
+  bool blockTask = false;
 
   List<dynamic> alivePlayers = [];
 
@@ -254,7 +255,7 @@ class TaskPageState extends State<TaskPage> {
   }
 
   bool isAccessTask(mac, actualTask) {
-    return (!actualTask['accomplished'] && isMacNearby(mac) || enabledBackup());
+    return (!actualTask['accomplished'] && (isMacNearby(mac) || enabledBackup()) && !blockTask);
   }
 
   String formatDistanceToString(contain, actualTask) {
@@ -336,6 +337,18 @@ class TaskPageState extends State<TaskPage> {
       if(mounted) {
         setState(() {
           getAlivePlayers(data['players']);
+
+          if(data['mac'] == currentPlayer['mac']) {
+            updateCurrentPlayer(data['isAlive']);
+
+            if(!data['isAlive']) {
+              blockTask = true;
+            }
+
+            if (data['isDeadReport']) {
+              blockTask = false;
+            }
+          }
         });
       }
     });
@@ -499,6 +512,21 @@ class TaskPageState extends State<TaskPage> {
       setState(() {
         alivePlayers = players;
       });
+    }
+  }
+
+  updateCurrentPlayer(isAlive) async {
+    final SharedPreferences prefs = await _prefs;
+    final current = prefs.getString("currentPlayer");
+    if(current != null){
+      final currentDecoded = json.decode(current);
+      currentDecoded['isAlive'] = isAlive;
+      prefs.setString("currentPlayer", json.encode(currentDecoded));
+      if(mounted){
+        setState(() {
+          currentPlayer = currentDecoded;
+        });
+      }
     }
   }
 
