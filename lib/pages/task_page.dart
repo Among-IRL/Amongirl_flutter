@@ -11,16 +11,15 @@ import 'package:amoungirl/pages/tasks/simon.dart';
 import 'package:amoungirl/pages/tasks/socles.dart';
 import 'package:amoungirl/pages/tasks/swipe_card.dart';
 import 'package:amoungirl/pages/vote_page.dart';
+import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wifi_hunter/wifi_hunter.dart';
 import 'package:wifi_hunter/wifi_hunter_result.dart';
 
-import '../services/socket_io_client.dart';
 import 'end_game_page.dart';
 
 class TaskPage extends StatefulWidget {
@@ -42,12 +41,15 @@ class TaskPageState extends State<TaskPage> {
   Map<String, dynamic> currentPlayer = {};
   bool blur = false;
 
+  List<dynamic> alivePlayers = [];
+
   late Timer _timer;
 
   bool backup = false;
 
   @override
   void initState() {
+    getAlivePlayers(widget.game['players']);
     whoIam();
     getPersonalTasks();
     print("ENABLED BACKUP = ${enabledBackup()}");
@@ -110,72 +112,65 @@ class TaskPageState extends State<TaskPage> {
           },
         ),
       ),
-      floatingActionButton: enabledBackup()
-          ? ExpandableFab(
-              type: ExpandableFabType.up,
-              distance: 60,
-              children: allPlayers(),
-            )
-          : Wrap(
-              direction: Axis.horizontal,
-              children: [
-                Container(
-                  margin: const EdgeInsets.all(10),
-                  child: FloatingActionButton(
-                    heroTag: "sabotage",
-                    elevation: 10,
-                    onPressed: () {
-                      if (currentPlayer['role'] == "player") {
-                        return;
-                      }
-                      print("sabotage");
+      floatingActionButton: Wrap(
+        direction: Axis.horizontal,
+        children: [
+          Container(
+            margin: const EdgeInsets.all(10),
+            child: FloatingActionButton(
+              heroTag: "sabotage",
+              elevation: 10,
+              onPressed: () {
+                if (currentPlayer['role'] == "player") {
+                  return;
+                }
+                print("sabotage");
 
-                      socketIoClient.socket
-                          .emit('sabotage', {'isSabotage': true});
-                    },
-                    child: const Icon(Icons.settings),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(10),
-                  child: FloatingActionButton(
-                    heroTag: "kill",
-                    elevation: 10,
-                    onPressed: () {
-                      if (currentPlayer['role'] == "player") {
-                        return;
-                      }
-
-                      if (backup || Platform.isIOS) {
-                        //TODO avoir plusieurs choix de kill
-                      } else {
-                        isMacNearby(playerToKill)
-                            ? killPlayer(playerToKill)
-                            : showSnackBar();
-                      }
-                    },
-                    child: const Icon(Icons.power_off),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(10),
-                  child: FloatingActionButton(
-                    heroTag: "report",
-                    elevation: 10,
-                    onPressed: () {
-                      if (!currentPlayer['isAlive']) {
-                        return;
-                      }
-                      socketIoClient.socket.emit('report', {
-                        'name': currentPlayer['name'],
-                        'macDeadPlayer': 'PLAYER2'
-                      });
-                    },
-                    child: const Icon(Icons.campaign),
-                  ),
-                ),
-              ],
+                socketIoClient.socket.emit('sabotage', {'isSabotage': true});
+              },
+              child: const Icon(Icons.settings),
             ),
+          ),
+          Container(
+            margin: const EdgeInsets.all(10),
+            child: FloatingActionButton(
+              heroTag: "kill",
+              elevation: 10,
+              onPressed: () {
+                if (currentPlayer['role'] == "player") {
+                  return;
+                }
+
+                if (backup || Platform.isIOS) {
+                  _showMyDialog();
+                } else {
+                  isMacNearby(playerToKill)
+                      ? killPlayer(playerToKill)
+                      : showSnackBar();
+                }
+              },
+              child: const Icon(Icons.power_off),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.all(10),
+            child: FloatingActionButton(
+              heroTag: "report",
+              elevation: 10,
+              onPressed: () {
+                if (!currentPlayer['isAlive']) {
+                  return;
+                }
+                socketIoClient.socket.emit('report', {
+                  'name': currentPlayer['name'],
+                  'macDeadPlayer': 'PLAYER2'
+                });
+              },
+              child: const Icon(Icons.campaign),
+            ),
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -342,7 +337,11 @@ class TaskPageState extends State<TaskPage> {
       );
     });
 
-    // socket.on
+    socketIoClient.socket.on('deathPlayer', (data) {
+      setState(() {
+        getAlivePlayers(data['players']);
+      });
+    });
   }
 
   Future whoIam() async {
@@ -437,7 +436,7 @@ class TaskPageState extends State<TaskPage> {
 
   List<Widget> allPlayers() {
     List<Widget> fabPlayer = [];
-    var players = getAlivePlayers();
+    var players = getAlivePlayers(widget.game['players']);
     for (var p in players) {
       fabPlayer.add(FloatingActionButton.small(
         child: Text(p['name']),
@@ -453,10 +452,8 @@ class TaskPageState extends State<TaskPage> {
         if (!currentPlayer['isAlive']) {
           return;
         }
-        socketIoClient.socket.emit('report', {
-          'name': currentPlayer['name'],
-          'macDeadPlayer': 'PLAYER2'
-        });
+        socketIoClient.socket.emit('report',
+            {'name': currentPlayer['name'], 'macDeadPlayer': 'PLAYER2'});
       },
     ));
 
@@ -468,8 +465,7 @@ class TaskPageState extends State<TaskPage> {
         }
         print("sabotage");
 
-        socketIoClient.socket
-            .emit('sabotage', {'isSabotage': true});
+        socketIoClient.socket.emit('sabotage', {'isSabotage': true});
       },
     ));
 
@@ -478,19 +474,56 @@ class TaskPageState extends State<TaskPage> {
 
   List<String> getAllPlayersMac() {
     List<String> playersMac = [];
-    var players = getAlivePlayers();
 
-    for (var p in players) {
+    for (var p in alivePlayers) {
       playersMac.add(p['mac']);
     }
     return playersMac;
   }
 
-  getAlivePlayers() {
-    final players = widget.game["players"]
+  getAlivePlayers(List<dynamic> allPlayers) {
+    final players = allPlayers
         .where((player) =>
             player['isAlive'] == true && player['role'] != 'saboteur')
         .toList();
-    return players;
+    setState(() {
+      alivePlayers = players;
+    });
+  }
+
+  Future<void> _showMyDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Tuer un joueur'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('Qui voulez-vous tuer ?'),
+              ],
+            ),
+          ),
+          actions: getButtonForAlivePlayers(),
+        );
+      },
+    );
+  }
+
+  List<Widget> getButtonForAlivePlayers() {
+    List<Widget> buttonAlivePlayers = [];
+
+    for (var p in alivePlayers) {
+      buttonAlivePlayers.add(
+        ElevatedButton(
+            onPressed: () {
+              killPlayerBackup(p['mac']);
+              Navigator.of(context).pop();
+            },
+            child: Text(p['name'])),
+      );
+    }
+    return buttonAlivePlayers;
   }
 }
