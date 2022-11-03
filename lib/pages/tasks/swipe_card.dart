@@ -78,6 +78,13 @@ class SwipeCardState extends State<SwipeCard> {
           'task': widget.task,
           'player': widget.currentPlayer
         });
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(game),
+          ),
+        );
       }
     });
 

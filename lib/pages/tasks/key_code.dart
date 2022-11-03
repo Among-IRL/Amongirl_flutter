@@ -122,6 +122,12 @@ class KeyCodeState extends State<KeyCode> {
           'task': widget.task,
           'player': widget.currentPlayer
         });
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(game),
+          ),
+        );
       }
     });
 

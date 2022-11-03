@@ -78,6 +78,13 @@ class SocleState extends State<Socle> {
           'task': widget.task,
           'player': widget.currentPlayer
         });
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(game),
+          ),
+        );
       }
     });
 
