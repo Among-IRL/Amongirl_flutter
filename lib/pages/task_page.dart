@@ -54,6 +54,7 @@ class TaskPageState extends State<TaskPage> {
     getAlivePlayers(widget.game['players']);
     whoIam();
     getPersonalTasks();
+    getPlayerStatus();
     print("ENABLED BACKUP = ${enabledBackup()}");
     if (!enabledBackup()) {
       _timer = Timer.periodic(const Duration(seconds: 2), (Timer t) async {
@@ -174,7 +175,7 @@ class TaskPageState extends State<TaskPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             currentPlayer.isNotEmpty ? tasksList(personalTasks) : Container(),
-            Text(getPlayerStatus()),
+            Text(playerStatusText),
             BackdropFilter(
               filter: blur
                   ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
