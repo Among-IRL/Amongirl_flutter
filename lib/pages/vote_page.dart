@@ -100,9 +100,11 @@ class VotePageState extends State<VotePage> {
                                 if (isVoted) {
                                   return;
                                 }
-                                setState(() {
-                                  playerVoted = value;
-                                });
+                                if(mounted) {
+                                  setState(() {
+                                    playerVoted = value;
+                                  });
+                                }
                               },
                             )
                               : ListTile(
@@ -121,9 +123,11 @@ class VotePageState extends State<VotePage> {
                 currentPlayer['isAlive'] ?
                 ElevatedButton(
                   onPressed: !isVoted ? () {
-                    setState(() {
-                      isVoted = true;
-                    });
+                    if(mounted) {
+                      setState(() {
+                        isVoted = true;
+                      });
+                    }
                     socketIoClient.socket.emit('vote', {
                       'macFrom': currentPlayer['mac'],
                       'macTo': playerVoted['mac']
@@ -182,31 +186,27 @@ class VotePageState extends State<VotePage> {
       if(dataDeath["mac"] == currentPlayer['mac']){
         currentPlayer["isAlive"] = dataDeath["isAlive"];
         await prefs.setString("currentPlayer", json.encode(currentPlayer));
-        //TODO : je suis mort que faire ?
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (BuildContext context) => GameConfigPage(),
-        //   ),
-        // );
       }
-
     });
 
     socketIoClient.socket.on('win', (data) {
       print('data win in vote page=$data');
-      setState(() {
-        win = true;
-        whoWin = data;
-      });
+      if(mounted) {
+        setState(() {
+          win = true;
+          whoWin = data;
+        });
+      }
     });
   }
 
   Future whoIam() async {
     final SharedPreferences prefs = await _prefs;
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-    });
+    if(mounted) {
+      setState(() {
+        currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+      });
+    }
   }
 
   void setStateIfMounted(f) {

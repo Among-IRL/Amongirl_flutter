@@ -65,15 +65,15 @@ class SwipeCardState extends State<SwipeCard> {
 
       if (mounted) {
         setState(() {
-          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          message =
+              "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
           game = data;
         });
       }
     });
 
-
-    socketIoClient.socket.on('taskNotComplete', (data){
-      if(mounted) {
+    socketIoClient.socket.on('taskNotComplete', (data) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -95,17 +95,13 @@ class SwipeCardState extends State<SwipeCard> {
       oneSec,
       (Timer timer) {
         if (_start == 0) {
-          setState(() {
-            print("timer swipe card done");
+          print("timer swipe card done");
 
-            socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": widget.currentPlayer["mac"],
-              "macTask": widget.task["mac"],
-              "accomplished": true,
-            });
-            timer.cancel();
+          socketIoClient.socket.emit("timerTaskDone", {
+            "macPlayer": widget.currentPlayer["mac"],
+            "macTask": widget.task["mac"],
+            "accomplished": true,
           });
-
 
           if (game.isNotEmpty) {
             Navigator.pushReplacement(
@@ -115,14 +111,16 @@ class SwipeCardState extends State<SwipeCard> {
               ),
             );
           }
+
+          timer.cancel();
         } else {
-          setState(() {
-            _start--;
-          });
+          if (mounted) {
+            setState(() {
+              _start--;
+            });
+          }
         }
       },
     );
   }
-
-
 }

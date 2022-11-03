@@ -46,30 +46,23 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) {
-        print("LEFT TIMER === $_start ");
         if (_start == 0) {
-          setState(() {
-            print("timer role done");
+          print("timer role done");
 
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(widget.game),
-              ),
-            );
-            //FIXME : remettre apres test wifi hunter
-            // Navigator.pushReplacement(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (BuildContext context) => TaskPage(widget.game),
-            //   ),
-            // );
-            timer.cancel();
-          });
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => TaskPage(widget.game),
+            ),
+          );
+
+          timer.cancel();
         } else {
-          setState(() {
-            _start--;
-          });
+          if (mounted) {
+            setState(() {
+              _start--;
+            });
+          }
         }
       },
     );
@@ -94,7 +87,9 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
               style: TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
-                  color: (currentPlayer['role'] == "player") ? Colors.green : Colors.red),
+                  color: (currentPlayer['role'] == "player")
+                      ? Colors.green
+                      : Colors.red),
             ),
           ],
         )));
@@ -102,18 +97,12 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
 
   Future whoIam() async {
     final SharedPreferences prefs = await _prefs;
-    setState(() {
-      currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      print("current player = $currentPlayer");
-    });
+    if (mounted) {
+      setState(() {
+        currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+        print("current player = $currentPlayer");
+      });
+    }
 
-    // final dataList = widget.game['players'].toList();
-    //
-    // final me = dataList.firstWhere((player) =>
-    // player['name'] == localPlayer);
-    // setState(() {
-    //   role = me['role'];
-    //   name = me['name'];
-    // });
   }
 }

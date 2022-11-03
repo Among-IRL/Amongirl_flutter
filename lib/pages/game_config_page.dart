@@ -32,6 +32,7 @@ class GameConfigPageState extends State<GameConfigPage> {
 
   @override
   void initState() {
+    //FIXME : reset shared pref
     initializeSocket();
     socketIoClient.socket.emit('getGameData');
     print("inin game");
@@ -41,7 +42,7 @@ class GameConfigPageState extends State<GameConfigPage> {
 
   @override
   void setState(fn) {
-    if(mounted) {
+    if (mounted) {
       super.setState(fn);
     }
   }
@@ -75,7 +76,7 @@ class GameConfigPageState extends State<GameConfigPage> {
                 maxLength: 15,
                 controller: pseudoController,
                 onChanged: (newValue) {
-                  if(mounted) {
+                  if (mounted) {
                     setState(() {
                       _pseudo = newValue;
                     });
@@ -107,7 +108,7 @@ class GameConfigPageState extends State<GameConfigPage> {
     socketIoClient.socket.on('resetGame', (data) async {
       final SharedPreferences prefs = await _prefs;
       prefs.clear();
-      if(mounted) {
+      if (mounted) {
         setState(() {
           players = data['players'];
           isReady = false;
@@ -120,18 +121,17 @@ class GameConfigPageState extends State<GameConfigPage> {
       final SharedPreferences prefs = await _prefs;
       prefs.clear();
       print(prefs);
-      if(mounted){
+      if (mounted) {
         setState(() {
           players = data['players'];
         });
       }
-
     });
 
     socketIoClient.socket.on('startGame', (data) {
       print("data");
       print(data);
-      if(mounted) {
+      if (mounted) {
         setState(() {
           players = data['players'];
           // print("playser in start = $players");
@@ -143,15 +143,14 @@ class GameConfigPageState extends State<GameConfigPage> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => RoleAllocationPage(data)),
-            (Route<dynamic> route) => false,
+        (Route<dynamic> route) => false,
       );
-
     });
 
     socketIoClient.socket.on('selectPlayer', (data) {
       print("select player");
       List dataPlayers = data["game"]['players'];
-      if(mounted){
+      if (mounted) {
         setState(() {
           players = data['game']['players'];
           allReady = dataPlayers.length >= 3;
@@ -161,7 +160,6 @@ class GameConfigPageState extends State<GameConfigPage> {
       print("data == $data");
       savePlayerInStorage(data['currentPlayer']);
     });
-
   }
 
   buildPlayersList() {
@@ -188,6 +186,7 @@ class GameConfigPageState extends State<GameConfigPage> {
   Future savePlayerInStorage(Map<String, dynamic> player) async {
     final SharedPreferences prefs = await _prefs;
     if (player['name'] == pseudoController.text) {
+      print("name == pref ok ?");
       await prefs.setString("currentPlayer", json.encode(player));
     }
   }
@@ -196,7 +195,8 @@ class GameConfigPageState extends State<GameConfigPage> {
     if (pseudoController.text.isNotEmpty) {
       print(pseudoController.text);
       isReady = true;
-      socketIoClient.socket.emit('selectPlayer', {'name': pseudoController.text});
+      socketIoClient.socket
+          .emit('selectPlayer', {'name': pseudoController.text});
     }
   }
 
@@ -207,14 +207,19 @@ class GameConfigPageState extends State<GameConfigPage> {
   void setRoleInPrefs(Map<String, dynamic> data) async {
     final SharedPreferences prefs = await _prefs;
 
-    final player = json.decode(prefs.getString("currentPlayer")!);
-    List<dynamic> players = data['players'];
+    final current = prefs.getString("currentPlayer");
+    if (current != null) {
+      print("current differnet de nulll");
+      final player = json.decode(prefs.getString("currentPlayer")!);
+      List<dynamic> players = data['players'];
 
-    final dataPlayer = players.firstWhere((element) => element['mac'] == player['mac']);
+      final dataPlayer =
+          players.firstWhere((element) => element['mac'] == player['mac']);
 
-    if(dataPlayer['role'] == "saboteur") {
-      player['role'] = dataPlayer['role'];
-      prefs.setString("currentPlayer", json.encode(player));
+      if (dataPlayer['role'] == "saboteur") {
+        player['role'] = dataPlayer['role'];
+        prefs.setString("currentPlayer", json.encode(player));
+      }
     }
   }
 }

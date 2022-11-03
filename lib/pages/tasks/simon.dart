@@ -79,16 +79,17 @@ class SimonState extends State<Simon> {
     });
 
     socketIoClient.socket.on('taskCompletedSimon', (data) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
-          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          message =
+              "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
           game = data;
         });
       }
     });
 
-    socketIoClient.socket.on('taskNotComplete', (data){
-      if(mounted) {
+    socketIoClient.socket.on('taskNotComplete', (data) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -110,29 +111,30 @@ class SimonState extends State<Simon> {
       oneSec,
       (Timer timer) {
         if (_start == 0) {
-          setState(() {
-            print("timer simon done");
+          print("timer simon done");
 
-            socketIoClient.socket.emit("timerTaskDone", {
-              "macPlayer": widget.currentPlayer["mac"],
-              "macTask": widget.task["mac"],
-              "accomplished": true,
-            });
-
-            if(game.isNotEmpty){
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => TaskPage(game),
-                ),
-              );
-            }
-            timer.cancel();
+          socketIoClient.socket.emit("timerTaskDone", {
+            "macPlayer": widget.currentPlayer["mac"],
+            "macTask": widget.task["mac"],
+            "accomplished": true,
           });
+
+          if (game.isNotEmpty) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (BuildContext context) => TaskPage(game),
+              ),
+            );
+          }
+
+          timer.cancel();
         } else {
-          setState(() {
-            _start--;
-          });
+          if (mounted) {
+            setState(() {
+              _start--;
+            });
+          }
         }
       },
     );
