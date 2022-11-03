@@ -217,7 +217,6 @@ class GameConfigPageState extends State<GameConfigPage> {
 
     final current = prefs.getString("currentPlayer");
     if (current != null) {
-      print("current differnet de nulll");
       final player = json.decode(prefs.getString("currentPlayer")!);
       List<dynamic> players = data['players'];
 

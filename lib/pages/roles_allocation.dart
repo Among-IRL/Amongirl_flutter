@@ -101,10 +101,8 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
       setState(() {
         //FIXME = regarder si le current existe dabord
         final current = json.decode(prefs.getString("currentPlayer")!);
-        print("CURRENT DNS LE Who I AM == $current");
         if (current != null) {
           currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-          print("current player = $currentPlayer");
         }
       });
     }

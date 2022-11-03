@@ -113,13 +113,11 @@ class SocleState extends State<Socle> {
   updateCurrentPlayer(isAlive, isDeadReport) async {
     final SharedPreferences prefs = await _prefs;
     final current = prefs.getString("currentPlayer");
-    print("current avant = $current");
     if (current != null) {
       final currentDecoded = json.decode(current);
       currentDecoded['isAlive'] = isAlive;
-      currentDecoded['isDeadReport'] = isDeadReport
+      currentDecoded['isDeadReport'] = isDeadReport;
       prefs.setString("currentPlayer", json.encode(currentDecoded));
-      print("current apres = $currentDecoded");
 
     }
   }

@@ -58,7 +58,7 @@ class TaskPageState extends State<TaskPage> {
 
     print("ENABLED BACKUP = ${enabledBackup()}");
     if (!enabledBackup()) {
-      _timer = Timer.periodic(const Duration(seconds: 2), (Timer t) async {
+      _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
         await huntWiFis();
       });
     }
@@ -313,12 +313,16 @@ class TaskPageState extends State<TaskPage> {
 
     socketIoClient.socket.on('report', (data) {
       //fixme context existe plus
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => VotePage(data),
-        ),
-      );
+      print("IS MOUNTED DANS LE REPORT ?? ${mounted}");
+      if(mounted) {
+        print("on va push la !!!!");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => VotePage(data),
+          ),
+        );
+      }
     });
 
     socketIoClient.socket.on('sabotage', (data) {
@@ -355,17 +359,25 @@ class TaskPageState extends State<TaskPage> {
   }
 
   Future whoIam() async {
+    // mettre à jout tout le player
+
+
+
     final SharedPreferences prefs = await _prefs;
 
-    final current = prefs.getString("currentPlayer");
+    final current = await prefs.getString("currentPlayer");
     print("CURRENT avant = $current");
     if (current == null) {
       print("current est null");
     } else {
       if (mounted) {
+        final currentP = json.decode(prefs.getString("currentPlayer")!);
+
+        List<dynamic> playersGame = widget.game["players"];
+
+        final newPlayer = playersGame.firstWhere((p) => p['mac'] == currentP['mac']);
         setState(() {
-          currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-          print("current player apres = $currentPlayer");
+          currentPlayer = newPlayer;
         });
       }
     }
@@ -575,7 +587,7 @@ class TaskPageState extends State<TaskPage> {
         playerStatusText = "Vous êtes vivant !";
         blockTask = false;
       }
-      if (currentPlayer['isDeadReport']) {
+      else if (currentPlayer['isDeadReport'] && !currentPlayer['isAlive']) {
         playerStatusText = "Vous êtes un fantome !";
         blockTask = false;
       } else {
