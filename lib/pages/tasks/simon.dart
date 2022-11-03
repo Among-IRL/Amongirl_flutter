@@ -25,6 +25,8 @@ class SimonState extends State<Simon> {
 
   Map<String, dynamic> game = {};
 
+  String message = "";
+
   String scoreSimon = '';
 
   @override
@@ -50,6 +52,7 @@ class SimonState extends State<Simon> {
           children: [
             Text("Temps restant : $_start"),
             Text("Veuillez jouer au simon"),
+            Text(message),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -78,8 +81,20 @@ class SimonState extends State<Simon> {
     socketIoClient.socket.on('taskCompletedSimon', (data) {
       if(mounted) {
         setState(() {
+          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
           game = data;
         });
+      }
+    });
+
+    socketIoClient.socket.on('taskNotComplete', (data){
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(data['game']),
+          ),
+        );
       }
     });
 

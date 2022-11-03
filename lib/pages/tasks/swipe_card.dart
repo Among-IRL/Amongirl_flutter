@@ -22,6 +22,8 @@ class SwipeCardState extends State<SwipeCard> {
 
   Map<String, dynamic> game = {};
 
+  String message = "";
+
   late Timer _timer;
   int _start = 10;
 
@@ -48,6 +50,7 @@ class SwipeCardState extends State<SwipeCard> {
           children: [
             Text("Veuillez confirmer votre identité"),
             Text("Temps restant : $_start"),
+            Text(message),
           ],
         ),
       ),
@@ -60,10 +63,26 @@ class SwipeCardState extends State<SwipeCard> {
     socketIoClient.socket.on("taskCompletedTaskCardSwip", (data) {
       print("DATA tasks completed task card swipe $data");
 
-      setState(() {
-        game = data;
-      });
+      if (mounted) {
+        setState(() {
+          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          game = data;
+        });
+      }
     });
+
+
+    socketIoClient.socket.on('taskNotComplete', (data){
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(data['game']),
+          ),
+        );
+      }
+    });
+
     socketIoClient.socket.emit(
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
@@ -75,7 +94,6 @@ class SwipeCardState extends State<SwipeCard> {
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) {
-        print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
             print("timer swipe card done");
@@ -87,6 +105,7 @@ class SwipeCardState extends State<SwipeCard> {
             });
             timer.cancel();
           });
+
 
           if (game.isNotEmpty) {
             Navigator.pushReplacement(
@@ -104,4 +123,6 @@ class SwipeCardState extends State<SwipeCard> {
       },
     );
   }
+
+
 }

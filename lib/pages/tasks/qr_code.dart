@@ -29,6 +29,10 @@ class QrCodeState extends State<QrCode> {
   Barcode? result;
   QRViewController? controller;
 
+  Map<String, dynamic> game = {};
+
+  String message = "";
+
   late Timer _timer;
   int _start = 10;
 
@@ -90,7 +94,12 @@ class QrCodeState extends State<QrCode> {
             child: Center(
               child: (result != null)
                   ? Text(result!.code.toString())
-                  : Text('Scan a code'),
+                  : Column(
+                    children: [
+                      Text('Scan a code'),
+                      Text(message),
+                    ],
+                  ),
             ),
           )
         ],
@@ -122,12 +131,25 @@ class QrCodeState extends State<QrCode> {
 
   void startTask() {
     socketIoClient.socket.on("taskCompletedQrCode", (data) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => TaskPage(data),
-        ),
-      );
+
+      if(mounted){
+        setState(() {
+          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          game = data;
+        });
+      }
+
+    });
+
+    socketIoClient.socket.on('taskNotComplete', (data){
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(data['game']),
+          ),
+        );
+      }
     });
 
     socketIoClient.socket.emit(
@@ -154,6 +176,15 @@ class QrCodeState extends State<QrCode> {
               "macTask": widget.task["mac"],
               "accomplished": true,
             });
+
+            if (game.isNotEmpty) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => TaskPage(game),
+                ),
+              );
+            }
 
             timer.cancel();
           });

@@ -35,6 +35,8 @@ class KeyCodeState extends State<KeyCode> {
   late Timer _timer;
   int _start = 60;
 
+  String message = "";
+
   @override
   void initState() {
     startTask();
@@ -60,6 +62,8 @@ class KeyCodeState extends State<KeyCode> {
             children: [
               const Text("Veuillez entrer le code qui vous à été donné"),
               Text("Temps restant : $_start"),
+              Text(message),
+              Text(message),
               Text(prettyCode(taskCodeToFound)),
               // displayCode == taskCodeToFound
               //     ? const Text(
@@ -91,9 +95,25 @@ class KeyCodeState extends State<KeyCode> {
     });
 
     socketIoClient.socket.on('taskCompletedTaskKeyCode', (data){
-      setState(() {
-        game = data;
-      });
+      if(mounted){
+        setState(() {
+          message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+          game = data;
+        });
+      }
+
+
+    });
+
+    socketIoClient.socket.on('taskNotComplete', (data){
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(data['game']),
+          ),
+        );
+      }
     });
 
     socketIoClient.socket.on('taskKeyPressed', (data) {

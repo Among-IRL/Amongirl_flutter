@@ -24,6 +24,10 @@ class SocleState extends State<Socle> {
   late Timer _timer;
   int _start = 10;
 
+  Map<String, dynamic> game = {};
+
+  String message = "";
+
   @override
   void initState() {
     startTask();
@@ -49,6 +53,7 @@ class SocleState extends State<Socle> {
             children: [
               Text("Veuillez mettre l'objet dans le socle adéquat"),
               Text("Temps restant : $_start"),
+              Text(message),
             ],
           ),
         ),
@@ -59,11 +64,21 @@ class SocleState extends State<Socle> {
   void startTask() {
 
     socketIoClient.socket.on('taskCompletedSocle', (data) {
-      if (data) {
+     if(mounted){
+       setState(() {
+         message = "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
+         game = data;
+       });
+     }
+    });
+
+
+    socketIoClient.socket.on('taskNotComplete', (data){
+      if(mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data),
+            builder: (BuildContext context) => TaskPage(data['game']),
           ),
         );
       }
@@ -82,7 +97,6 @@ class SocleState extends State<Socle> {
     _timer = Timer.periodic(
       oneSec,
       (Timer timer) {
-        print("LEFT TIMER === $_start ");
         if (_start == 0) {
           setState(() {
             print("timer key code done");
@@ -92,6 +106,15 @@ class SocleState extends State<Socle> {
               "macTask": widget.task["mac"],
               "accomplished": true,
             });
+
+            if (game.isNotEmpty) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (BuildContext context) => TaskPage(game),
+                ),
+              );
+            }
             timer.cancel();
           });
         } else {
