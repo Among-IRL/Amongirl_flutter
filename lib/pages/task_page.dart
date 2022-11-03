@@ -65,7 +65,9 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    if (!enabledBackup()) {
+      _timer.cancel();
+    }
     super.dispose();
   }
 
