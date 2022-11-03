@@ -116,6 +116,15 @@ class KeyCodeState extends State<KeyCode> {
       }
     });
 
+    socketIoClient.socket.on('deathPlayer', (data){
+      if(data['mac'] == widget.currentPlayer['mac']) {
+        socketIoClient.socket.emit('stopTask', {
+          'task': widget.task,
+          'player': widget.currentPlayer
+        });
+      }
+    });
+
     socketIoClient.socket.on('taskKeyPressed', (data) {
       if (taskKeyPressed.length > 3) {
         if (mounted) {
@@ -158,6 +167,11 @@ class KeyCodeState extends State<KeyCode> {
               ),
             );
           }
+
+          socketIoClient.socket.emit('stopTask', {
+            'task': widget.task,
+            'player': widget.currentPlayer
+          });
 
           timer.cancel();
         } else {

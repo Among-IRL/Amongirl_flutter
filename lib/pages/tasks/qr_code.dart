@@ -150,6 +150,15 @@ class QrCodeState extends State<QrCode> {
       }
     });
 
+    socketIoClient.socket.on('deathPlayer', (data){
+      if(data['mac'] == widget.currentPlayer['mac']) {
+        socketIoClient.socket.emit('stopTask', {
+          'task': widget.task,
+          'player': widget.currentPlayer
+        });
+      }
+    });
+
     socketIoClient.socket.emit(
       "startTask",
       {'task': widget.task, "player": widget.currentPlayer},
@@ -181,6 +190,11 @@ class QrCodeState extends State<QrCode> {
               ),
             );
           }
+
+          socketIoClient.socket.emit('stopTask', {
+            'task': widget.task,
+            'player': widget.currentPlayer
+          });
 
           timer.cancel();
         } else {
