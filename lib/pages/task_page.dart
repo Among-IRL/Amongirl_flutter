@@ -66,8 +66,6 @@ class TaskPageState extends State<TaskPage> {
     super.initState();
   }
 
-
-
   @override
   void dispose() {
     if (!enabledBackup()) {
@@ -349,7 +347,7 @@ class TaskPageState extends State<TaskPage> {
         getAlivePlayers(data['players']);
         setState(() {
           if (data['mac'] == currentPlayer['mac']) {
-            updateCurrentPlayer(data['isAlive']);
+            updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
           }
         });
       }
@@ -518,12 +516,13 @@ class TaskPageState extends State<TaskPage> {
     }
   }
 
-  updateCurrentPlayer(isAlive) async {
+  updateCurrentPlayer(isAlive, isDeadReport) async {
     final SharedPreferences prefs = await _prefs;
     final current = prefs.getString("currentPlayer");
     if (current != null) {
       final currentDecoded = json.decode(current);
       currentDecoded['isAlive'] = isAlive;
+      currentDecoded['isDeadReport'] = isDeadReport;
       prefs.setString("currentPlayer", json.encode(currentDecoded));
       if (mounted) {
         setState(() {
@@ -574,6 +573,10 @@ class TaskPageState extends State<TaskPage> {
     if (currentPlayer.isNotEmpty) {
       if (currentPlayer['isAlive']) {
         playerStatusText = "Vous êtes vivant !";
+        blockTask = false;
+      }
+      if (currentPlayer['isDeadReport']) {
+        playerStatusText = "Vous êtes un fantome !";
         blockTask = false;
       } else {
         playerStatusText = "Vous êtes mort !";
