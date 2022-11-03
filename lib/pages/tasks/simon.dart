@@ -98,7 +98,7 @@ class SimonState extends State<Simon> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(game),
+            builder: (BuildContext context) => TaskPage(data['game']),
           ),
         );
       }

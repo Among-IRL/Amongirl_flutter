@@ -125,7 +125,7 @@ class KeyCodeState extends State<KeyCode> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(game),
+            builder: (BuildContext context) => TaskPage(data['game']),
           ),
         );
       }
