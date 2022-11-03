@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
@@ -362,6 +363,7 @@ class TaskPageState extends State<TaskPage> {
           print("current est null");
         } else {
           currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+          print("current player = $currentPlayer");
         }
       });
     }
@@ -497,7 +499,6 @@ class TaskPageState extends State<TaskPage> {
       playersMac.add(p['mac']);
     }
 
-    print("PLAYER MAC == ${playersMac}");
     return playersMac;
   }
 
@@ -565,12 +566,14 @@ class TaskPageState extends State<TaskPage> {
   }
 
   getPlayerStatus() {
-    if (currentPlayer['isAlive']) {
-      playerStatusText = "Vous êtes vivant !";
-      blockTask = false;
-    } else {
-      playerStatusText = "Vous êtes mort !";
-      blockTask = true;
+    if(currentPlayer.isNotEmpty) {
+      if (currentPlayer['isAlive']) {
+        playerStatusText = "Vous êtes vivant !";
+        blockTask = false;
+      } else {
+        playerStatusText = "Vous êtes mort !";
+        blockTask = true;
+      }
     }
   }
 }
