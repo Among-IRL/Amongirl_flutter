@@ -37,6 +37,8 @@ class KeyCodeState extends State<KeyCode> {
 
   var taskCodeToFound = [];
 
+  Map<String, dynamic> currentPlayer = {};
+
   // var displayCode = ["*", "*", "*", "*"];
 
   List<List<dynamic>> codeRemember = [[]];
@@ -50,6 +52,7 @@ class KeyCodeState extends State<KeyCode> {
 
   @override
   void initState() {
+    currentPlayer = widget.currentPlayer;
     startTask();
     super.initState();
   }
@@ -73,7 +76,6 @@ class KeyCodeState extends State<KeyCode> {
             children: [
               const Text("Veuillez entrer le code qui vous à été donné"),
               Text("Temps restant : $_start"),
-              Text(message),
               Text(message),
               Text(prettyCode(taskCodeToFound)),
               // displayCode == taskCodeToFound
@@ -122,7 +124,7 @@ class KeyCodeState extends State<KeyCode> {
     });
 
     socketIoClient.socket.on('sabotage', (data) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           blur = data;
         });
@@ -136,7 +138,6 @@ class KeyCodeState extends State<KeyCode> {
         });
       }
     });
-
 
     socketIoClient.socket.on('taskCompletedTaskKeyCode', (data) {
       if (mounted) {
@@ -153,50 +154,61 @@ class KeyCodeState extends State<KeyCode> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) => TaskPage(
+              data['game'],
+              currentPlayer,
+              blur,
+            ),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('report', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('buzzer', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
-    socketIoClient.socket.on('deathPlayer', (data){
-      socketIoClient.socket.emit('stopTask', {
-        'task': widget.task,
-        'player': widget.currentPlayer
-      });
+    socketIoClient.socket.on('deathPlayer', (data) {
+      socketIoClient.socket.emit(
+          'stopTask', {'task': widget.task, 'player': currentPlayer});
 
       updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (BuildContext context) => TaskPage(data['game'], blur),
+          builder: (BuildContext context) => TaskPage(
+            data['game'],
+            currentPlayer,
+            blur,
+          ),
         ),
       );
     });
-
 
     socketIoClient.socket.on('taskKeyPressed', (data) {
       if (taskKeyPressed.length > 3) {
@@ -212,23 +224,29 @@ class KeyCodeState extends State<KeyCode> {
 
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": widget.currentPlayer},
+      {
+        'task': widget.task,
+        "player": currentPlayer,
+      },
     );
     startTimer();
   }
 
-
   updateCurrentPlayer(isAlive, isDeadReport) async {
-    final SharedPreferences prefs = await _prefs;
-    final current = prefs.getString("currentPlayer");
-    if (current != null) {
-      final currentDecoded = json.decode(current);
-      currentDecoded['isAlive'] = isAlive;
-      currentDecoded['isDeadReport'] = isDeadReport;
-      prefs.setString("currentPlayer", json.encode(currentDecoded));
-
+    // final SharedPreferences prefs = await _prefs;
+    // final current = prefs.getString("currentPlayer");
+    // if (current != null) {
+    //   final currentDecoded = json.decode(current);
+    if (mounted) {
+      setState(() {
+        currentPlayer['isAlive'] = isAlive;
+        currentPlayer['isDeadReport'] = isDeadReport;
+      });
     }
+    // prefs.setString("currentPlayer", json.encode(currentDecoded));
+    // }
   }
+
   void startTimer() {
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
@@ -239,7 +257,7 @@ class KeyCodeState extends State<KeyCode> {
           print("timer key code done");
 
           socketIoClient.socket.emit("timerTaskDone", {
-            "macPlayer": widget.currentPlayer["mac"],
+            "macPlayer": currentPlayer["mac"],
             "macTask": widget.task["mac"],
             "accomplished": true,
           });
@@ -248,15 +266,13 @@ class KeyCodeState extends State<KeyCode> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game, blur),
+                builder: (BuildContext context) => TaskPage(game, currentPlayer, blur),
               ),
             );
           }
 
-          socketIoClient.socket.emit('stopTask', {
-            'task': widget.task,
-            'player': widget.currentPlayer
-          });
+          socketIoClient.socket.emit('stopTask',
+              {'task': widget.task, 'player': currentPlayer});
 
           timer.cancel();
         } else {

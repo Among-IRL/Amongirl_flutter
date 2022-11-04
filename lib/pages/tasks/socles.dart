@@ -26,9 +26,12 @@ class SocleState extends State<Socle> {
 
   late Timer _timer;
   int _start = 10;
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
+  // final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   Map<String, dynamic> game = {};
+
+  Map<String, dynamic> currentPlayer = {};
 
   String message = "";
 
@@ -36,6 +39,7 @@ class SocleState extends State<Socle> {
 
   @override
   void initState() {
+    currentPlayer = widget.currentPlayer;
     startTask();
     super.initState();
   }
@@ -75,6 +79,7 @@ class SocleState extends State<Socle> {
 
   void startTask() {
     socketIoClient.socket.on('taskCompletedSocle', (data) {
+      print("data game in socle == ${data['game']}");
       if (mounted) {
         setState(() {
           message =
@@ -85,7 +90,7 @@ class SocleState extends State<Socle> {
     });
 
     socketIoClient.socket.on('sabotage', (data) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           blur = data;
         });
@@ -111,32 +116,36 @@ class SocleState extends State<Socle> {
     });
 
     socketIoClient.socket.on('report', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('buzzer', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
-    socketIoClient.socket.on('deathPlayer', (data){
-      socketIoClient.socket.emit('stopTask', {
-        'task': widget.task,
-        'player': widget.currentPlayer
-      });
+    socketIoClient.socket.on('deathPlayer', (data) {
+      socketIoClient.socket
+          .emit('stopTask', {'task': widget.task, 'player': currentPlayer});
 
       updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
 
@@ -144,19 +153,23 @@ class SocleState extends State<Socle> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) =>
+                TaskPage(data['game'], currentPlayer, blur),
           ),
         );
       }
     });
-
 
     socketIoClient.socket.on('taskNotComplete', (data) {
       if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) => TaskPage(
+              data['game'],
+              currentPlayer,
+              blur,
+            ),
           ),
         );
       }
@@ -164,21 +177,26 @@ class SocleState extends State<Socle> {
 
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": widget.currentPlayer},
+      {'task': widget.task, "player": currentPlayer},
     );
     startTimer();
   }
 
   updateCurrentPlayer(isAlive, isDeadReport) async {
-    final SharedPreferences prefs = await _prefs;
-    final current = prefs.getString("currentPlayer");
-    if (current != null) {
-      final currentDecoded = json.decode(current);
-      currentDecoded['isAlive'] = isAlive;
-      currentDecoded['isDeadReport'] = isDeadReport;
-      prefs.setString("currentPlayer", json.encode(currentDecoded));
-
+    // final SharedPreferences prefs = await _prefs;
+    // final current = prefs.getString("currentPlayer");
+    // if (current != null) {
+    //   final currentDecoded = json.decode(current);
+    if (mounted) {
+      setState(() {
+        currentPlayer['isAlive'] = isAlive;
+        currentPlayer['isDeadReport'] = isDeadReport;
+      });
     }
+
+    // prefs.setSt:ring("currentPlayer", json.encode(currentDecoded));
+
+    // }
   }
 
   void startTimer() {
@@ -190,7 +208,7 @@ class SocleState extends State<Socle> {
           print("timer key code done");
 
           socketIoClient.socket.emit("timerTaskDone", {
-            "macPlayer": widget.currentPlayer["mac"],
+            "macPlayer": currentPlayer["mac"],
             "macTask": widget.task["mac"],
             "accomplished": true,
           });
@@ -199,15 +217,18 @@ class SocleState extends State<Socle> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game, blur),
+                builder: (BuildContext context) => TaskPage(
+                  game,
+                  currentPlayer,
+                  blur,
+                ),
               ),
             );
           }
 
-          socketIoClient.socket.emit('stopTask', {
-            'task': widget.task,
-            'player': widget.currentPlayer
-          });
+
+          socketIoClient.socket
+              .emit('stopTask', {'task': widget.task, 'player': currentPlayer});
 
           timer.cancel();
         } else {

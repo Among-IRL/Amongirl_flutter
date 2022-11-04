@@ -19,7 +19,7 @@ class EndGamePage extends StatefulWidget {
 }
 
 class EndGamePageState extends State<EndGamePage> {
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  // final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   SocketIoClient socketIoClient = SocketIoClient();
 
@@ -29,7 +29,7 @@ class EndGamePageState extends State<EndGamePage> {
   @override
   void initState() {
     startTimer();
-    cleanSharedPref();
+    // cleanSharedPref();
     onSocket();
     super.initState();
   }
@@ -56,10 +56,10 @@ class EndGamePageState extends State<EndGamePage> {
         ));
   }
 
-  cleanSharedPref() async {
-    final SharedPreferences prefs = await _prefs;
-    await prefs.clear();
-  }
+  // cleanSharedPref() async {
+  //   // final SharedPreferences prefs = await _prefs;
+  //   await prefs.clear();
+  // }
 
   void startTimer() {
     const oneSec = Duration(seconds: 1);

@@ -36,6 +36,8 @@ class QrCodeState extends State<QrCode> {
 
   Map<String, dynamic> game = {};
 
+  Map<String, dynamic> currentPlayer = {};
+
   String message = "";
 
   late Timer _timer;
@@ -55,6 +57,7 @@ class QrCodeState extends State<QrCode> {
 
   @override
   void initState() {
+    currentPlayer = widget.currentPlayer;
     startTask();
     super.initState();
   }
@@ -119,7 +122,6 @@ class QrCodeState extends State<QrCode> {
     );
   }
 
-
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     bool test = false;
@@ -130,7 +132,7 @@ class QrCodeState extends State<QrCode> {
           socketIoClient.socket.emit(
             "qrCodeScan",
             {
-              "player": widget.currentPlayer,
+              "player": currentPlayer,
               "accomplished": true,
             },
           );
@@ -164,7 +166,7 @@ class QrCodeState extends State<QrCode> {
     });
 
     socketIoClient.socket.on('sabotage', (data) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           blur = data;
         });
@@ -184,69 +186,81 @@ class QrCodeState extends State<QrCode> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) =>
+                TaskPage(data['game'], currentPlayer, blur),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('report', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('buzzer', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
-    socketIoClient.socket.on('deathPlayer', (data){
-      socketIoClient.socket.emit('stopTask', {
-        'task': widget.task,
-        'player': widget.currentPlayer
-      });
+    socketIoClient.socket.on('deathPlayer', (data) {
+      socketIoClient.socket.emit(
+          'stopTask', {'task': widget.task, 'player': widget.currentPlayer});
 
       updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (BuildContext context) => TaskPage(data['game'], blur),
+          builder: (BuildContext context) => TaskPage(
+            data['game'],
+            currentPlayer,
+            blur,
+          ),
         ),
       );
     });
 
-
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": widget.currentPlayer},
+      {'task': widget.task, "player": currentPlayer},
     );
 
     startTimer();
   }
 
   updateCurrentPlayer(isAlive, isDeadReport) async {
-    final SharedPreferences prefs = await _prefs;
-    final current = prefs.getString("currentPlayer");
-    if (current != null) {
-      final currentDecoded = json.decode(current);
-      currentDecoded['isAlive'] = isAlive;
-      currentDecoded['isDeadReport'] = isDeadReport;
-      prefs.setString("currentPlayer", json.encode(currentDecoded));
-
+    // final SharedPreferences prefs = await _prefs;
+    // final current = prefs.getString("currentPlayer");
+    // if (current != null) {
+    //   final currentDecoded = json.decode(current);
+    if (mounted) {
+      setState(() {
+        currentPlayer['isAlive'] = isAlive;
+        currentPlayer['isDeadReport'] = isDeadReport;
+      });
     }
+
+    // prefs.setString("currentPlayer", json.encode(currentDecoded));
+    // }
   }
 
   void startTimer() {
@@ -259,7 +273,7 @@ class QrCodeState extends State<QrCode> {
           print("timer qr code done");
 
           socketIoClient.socket.emit("timerTaskDone", {
-            "macPlayer": widget.currentPlayer["mac"],
+            "macPlayer": currentPlayer["mac"],
             "macTask": widget.task["mac"],
             "accomplished": true,
           });
@@ -268,14 +282,18 @@ class QrCodeState extends State<QrCode> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game, blur),
+                builder: (BuildContext context) => TaskPage(
+                  game,
+                  currentPlayer,
+                  blur,
+                ),
               ),
             );
           }
 
           socketIoClient.socket.emit('stopTask', {
             'task': widget.task,
-            'player': widget.currentPlayer
+            'player': currentPlayer,
           });
 
           timer.cancel();

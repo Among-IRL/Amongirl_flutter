@@ -26,11 +26,13 @@ class SwipeCardState extends State<SwipeCard> {
 
   Map<String, dynamic> game = {};
 
+  Map<String, dynamic> currentPlayer = {};
+
   String message = "";
 
   String playerWhoCompleteTask = "";
 
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  // final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   late Timer _timer;
   int _start = 10;
@@ -39,6 +41,7 @@ class SwipeCardState extends State<SwipeCard> {
 
   @override
   void initState() {
+    currentPlayer = widget.currentPlayer;
     startTask();
     super.initState();
   }
@@ -87,7 +90,7 @@ class SwipeCardState extends State<SwipeCard> {
     });
 
     socketIoClient.socket.on('sabotage', (data) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           blur = data;
         });
@@ -116,32 +119,36 @@ class SwipeCardState extends State<SwipeCard> {
     });
 
     socketIoClient.socket.on('report', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('buzzer', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
-    socketIoClient.socket.on('deathPlayer', (data){
-      socketIoClient.socket.emit('stopTask', {
-        'task': widget.task,
-        'player': widget.currentPlayer
-      });
+    socketIoClient.socket.on('deathPlayer', (data) {
+      socketIoClient.socket
+          .emit('stopTask', {'task': widget.task, 'player': currentPlayer});
 
       updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
 
@@ -149,11 +156,11 @@ class SwipeCardState extends State<SwipeCard> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) =>
+                TaskPage(data['game'], currentPlayer, blur),
           ),
         );
       }
-
     });
 
     socketIoClient.socket.on('taskNotComplete', (data) {
@@ -161,7 +168,8 @@ class SwipeCardState extends State<SwipeCard> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) =>
+                TaskPage(data['game'], currentPlayer, blur),
           ),
         );
       }
@@ -169,20 +177,25 @@ class SwipeCardState extends State<SwipeCard> {
 
     socketIoClient.socket.emit(
       "startTask",
-      {'task': widget.task, "player": widget.currentPlayer},
+      {'task': widget.task, "player": currentPlayer},
     );
   }
 
   updateCurrentPlayer(isAlive, isDeadReport) async {
-    final SharedPreferences prefs = await _prefs;
-    final current = prefs.getString("currentPlayer");
-    if (current != null) {
-      final currentDecoded = json.decode(current);
-      currentDecoded['isAlive'] = isAlive;
-      currentDecoded['isDeadReport'] = isDeadReport;
-      prefs.setString("currentPlayer", json.encode(currentDecoded));
-
+    // final SharedPreferences prefs = await _prefs;
+    // final current = prefs.getString("currentPlayer");
+    // if (current != null) {
+    //   final currentDecoded = json.decode(current);
+    if (mounted) {
+      setState(() {
+        currentPlayer['isAlive'] = isAlive;
+        currentPlayer['isDeadReport'] = isDeadReport;
+      });
     }
+
+    // prefs.setString("currentPlayer", json.encode(currentDecoded));
+    //
+    // }
   }
 
   void startTimer() {
@@ -194,24 +207,23 @@ class SwipeCardState extends State<SwipeCard> {
           print("timer swipe card done");
 
           socketIoClient.socket.emit("timerTaskDone", {
-            "macPlayer": widget.currentPlayer["mac"],
+            "macPlayer": currentPlayer["mac"],
             "macTask": widget.task["mac"],
             "accomplished": true,
           });
 
-          if (game.isNotEmpty && playerWhoCompleteTask == widget.currentPlayer['mac']) {
+          if (game.isNotEmpty &&
+              playerWhoCompleteTask == currentPlayer['mac']) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game, blur),
+                builder: (BuildContext context) => TaskPage(game, currentPlayer, blur),
               ),
             );
           }
 
-          socketIoClient.socket.emit('stopTask', {
-            'task': widget.task,
-            'player': widget.currentPlayer
-          });
+          socketIoClient.socket.emit('stopTask',
+              {'task': widget.task, 'player': currentPlayer});
 
           timer.cancel();
         } else {

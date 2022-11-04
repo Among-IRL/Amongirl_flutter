@@ -29,10 +29,10 @@ class GameConfigPageState extends State<GameConfigPage> {
   late String _pseudo;
 
   List<dynamic> players = [];
+  Map<String, dynamic> currentPlayer = {};
 
   @override
   void initState() {
-    clearPrefs();
 
     if (Platform.isAndroid) {
       askConfig();
@@ -111,8 +111,8 @@ class GameConfigPageState extends State<GameConfigPage> {
 
   void initializeSocket() {
     socketIoClient.socket.on('resetGame', (data) async {
-      final SharedPreferences prefs = await _prefs;
-      prefs.clear();
+      // final SharedPreferences prefs = await _prefs;
+      // prefs.clear();
       if (mounted) {
         setState(() {
           players = data['players'];
@@ -123,9 +123,9 @@ class GameConfigPageState extends State<GameConfigPage> {
 
     socketIoClient.socket.on('getGameData', (data) async {
       print("INIT GAME");
-      final SharedPreferences prefs = await _prefs;
-      prefs.clear();
-      print(prefs);
+      // final SharedPreferences prefs = await _prefs;
+      // prefs.clear();
+      // print(prefs);
       if (mounted) {
         setState(() {
           players = data['players'];
@@ -143,11 +143,20 @@ class GameConfigPageState extends State<GameConfigPage> {
         });
       }
 
-      setRoleInPrefs(data);
+      // setRoleInPrefs(data);
+
+      var moi =
+          players.firstWhere((player) => player['name'] == pseudoController.text);
+
+      if (mounted) {
+        setState(() {
+          currentPlayer = moi;
+        });
+      }
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => RoleAllocationPage(data)),
+        MaterialPageRoute(builder: (context) => RoleAllocationPage(data, currentPlayer)),
         (Route<dynamic> route) => false,
       );
     });
@@ -159,11 +168,13 @@ class GameConfigPageState extends State<GameConfigPage> {
         setState(() {
           players = data['game']['players'];
           allReady = dataPlayers.length >= 3;
+          currentPlayer = data['currentPlayer'];
         });
       }
 
       print("data == $data");
-      savePlayerInStorage(data['currentPlayer']);
+
+      // savePlayerInStorage(data['currentPlayer']);
     });
   }
 
@@ -188,16 +199,16 @@ class GameConfigPageState extends State<GameConfigPage> {
     );
   }
 
-  Future savePlayerInStorage(Map<String, dynamic> player) async {
-    final SharedPreferences prefs = await _prefs;
-
-    print("player['name'] = ${player['name']}");
-    print("PLAYER == $player");
-    if (player['name'] == pseudoController.text) {
-      print("name == pref ok ?");
-      await prefs.setString("currentPlayer", json.encode(player));
-    }
-  }
+  // Future savePlayerInStorage(Map<String, dynamic> player) async {
+  //   final SharedPreferences prefs = await _prefs;
+  //
+  //   print("player['name'] = ${player['name']}");
+  //   print("PLAYER == $player");
+  //   if (player['name'] == pseudoController.text) {
+  //     print("name == pref ok ?");
+  //     await prefs.setString("currentPlayer", json.encode(player));
+  //   }
+  // }
 
   choosePseudo() {
     if (pseudoController.text.isNotEmpty) {
@@ -211,30 +222,30 @@ class GameConfigPageState extends State<GameConfigPage> {
   start() {
     socketIoClient.socket.emit('startGame');
   }
+  //
+  // void setRoleInPrefs(Map<String, dynamic> data) async {
+  //   final SharedPreferences prefs = await _prefs;
+  //
+  //   final current = prefs.getString("currentPlayer");
+  //   if (current != null) {
+  //     final player = json.decode(prefs.getString("currentPlayer")!);
+  //     List<dynamic> players = data['players'];
+  //
+  //     final dataPlayer =
+  //         players.firstWhere((element) => element['mac'] == player['mac']);
+  //
+  //     if (dataPlayer['role'] == "saboteur") {
+  //       player['role'] = dataPlayer['role'];
+  //       prefs.setString("currentPlayer", json.encode(player));
+  //     }
+  //   }
+  // }
 
-  void setRoleInPrefs(Map<String, dynamic> data) async {
-    final SharedPreferences prefs = await _prefs;
-
-    final current = prefs.getString("currentPlayer");
-    if (current != null) {
-      final player = json.decode(prefs.getString("currentPlayer")!);
-      List<dynamic> players = data['players'];
-
-      final dataPlayer =
-          players.firstWhere((element) => element['mac'] == player['mac']);
-
-      if (dataPlayer['role'] == "saboteur") {
-        player['role'] = dataPlayer['role'];
-        prefs.setString("currentPlayer", json.encode(player));
-      }
-    }
-  }
-
-  void clearPrefs() async {
-    print(" \n !! CLEAR PREFS !! \n");
-    final SharedPreferences prefs = await _prefs;
-    prefs.clear();
-  }
+  // void clearPrefs() async {
+  //   print(" \n !! CLEAR PREFS !! \n");
+  //   final SharedPreferences prefs = await _prefs;
+  //   prefs.clear();
+  // }
 
   void askConfig() async {
     var status = await Permission.location.status;

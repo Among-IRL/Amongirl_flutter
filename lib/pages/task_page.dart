@@ -17,7 +17,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wifi_hunter/wifi_hunter.dart';
 import 'package:wifi_hunter/wifi_hunter_result.dart';
 
@@ -26,8 +25,9 @@ import 'end_game_page.dart';
 class TaskPage extends StatefulWidget {
   final Map<String, dynamic> game;
   late final bool toto;
+  final Map<String, dynamic> currentPlayer;
 
-  TaskPage(this.game, this.toto);
+  TaskPage(this.game, this.currentPlayer, this.toto);
 
   static const routeName = 'task';
 
@@ -37,7 +37,6 @@ class TaskPage extends StatefulWidget {
 
 class TaskPageState extends State<TaskPage> {
   WiFiHunterResult wiFiHunterResult = WiFiHunterResult();
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   SocketIoClient socketIoClient = SocketIoClient();
   List<dynamic> personalTasks = [];
   Map<String, dynamic> currentPlayer = {};
@@ -53,10 +52,10 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   void initState() {
-    super.initState();
+    currentPlayer = widget.currentPlayer;
+
     blur = widget.toto;
     getAlivePlayers(widget.game['players']);
-    whoIam();
     getPersonalTasks();
 
     print("ENABLED BACKUP = ${enabledBackup()}");
@@ -66,11 +65,12 @@ class TaskPageState extends State<TaskPage> {
       // });
     }
     onSocket();
+    super.initState();
   }
 
   @override
   void dispose() {
-    if(!enabledBackup()) {
+    if (!enabledBackup()) {
       _timer.cancel();
     }
     super.dispose();
@@ -302,13 +302,13 @@ class TaskPageState extends State<TaskPage> {
   }
 
   void onSocket() {
-    socketIoClient.socket.on('task', (data) {
-      final myTask =
-          personalTasks.indexWhere((task) => task['mac'] == data['mac']);
-      setStateIfMounted(() {
-        personalTasks[myTask] = data;
-      });
-    });
+    // socketIoClient.socket.on('task', (data) {
+    //   final myTask =
+    //       personalTasks.indexWhere((task) => task['mac'] == data['mac']);
+    //   setStateIfMounted(() {
+    //     personalTasks[myTask] = data;
+    //   });
+    // });
 
     socketIoClient.socket.on('win', (data) {
       print('WIN');
@@ -328,7 +328,10 @@ class TaskPageState extends State<TaskPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
@@ -355,7 +358,7 @@ class TaskPageState extends State<TaskPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(widget.game),
+            builder: (BuildContext context) => VotePage(widget.game, currentPlayer),
           ),
         );
       }
@@ -373,29 +376,29 @@ class TaskPageState extends State<TaskPage> {
     });
   }
 
-  Future whoIam() async {
-    // mettre à jout tout le player
-
-    final SharedPreferences prefs = await _prefs;
-
-    final current = await prefs.getString("currentPlayer");
-    print("CURRENT avant = $current");
-    if (current == null) {
-      print("current est null");
-    } else {
-      if (mounted) {
-        final currentP = json.decode(prefs.getString("currentPlayer")!);
-
-        List<dynamic> playersGame = widget.game["players"];
-
-        final newPlayer =
-            playersGame.firstWhere((p) => p['mac'] == currentP['mac']);
-        setState(() {
-          currentPlayer = newPlayer;
-        });
-      }
-    }
-  }
+  // Future whoIam() async {
+  //   // mettre à jout tout le player
+  //
+  //   final SharedPreferences prefs = await _prefs;
+  //
+  //   final current = await prefs.getString("currentPlayer");
+  //   print("CURRENT avant = $current");
+  //   if (current == null) {
+  //     print("current est null");
+  //   } else {
+  //     if (mounted) {
+  //       final currentP = json.decode(prefs.getString("currentPlayer")!);
+  //
+  //       List<dynamic> playersGame = widget.game["players"];
+  //
+  //       final newPlayer =
+  //           playersGame.firstWhere((p) => p['mac'] == currentP['mac']);
+  //       setState(() {
+  //         currentPlayer = newPlayer;
+  //       });
+  //     }
+  //   }
+  // }
 
   void setStateIfMounted(f) {
     if (mounted) setState(f);
@@ -449,10 +452,9 @@ class TaskPageState extends State<TaskPage> {
   }
 
   void getPersonalTasks() async {
-    final SharedPreferences prefs = await _prefs;
-    final currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-    List<Map<String, dynamic>> tasks = [];
+    // List<Map<String, dynamic>> tasks = [];
     List<dynamic> players = widget.game['players'];
+    print("ICI get persnoal task == ${widget.game['players']}");
     Map<String, dynamic> player =
         players.firstWhere((player) => player['mac'] == currentPlayer['mac']);
     if (mounted) {
@@ -543,18 +545,11 @@ class TaskPageState extends State<TaskPage> {
   }
 
   updateCurrentPlayer(isAlive, isDeadReport) async {
-    final SharedPreferences prefs = await _prefs;
-    final current = prefs.getString("currentPlayer");
-    if (current != null) {
-      final currentDecoded = json.decode(current);
-      currentDecoded['isAlive'] = isAlive;
-      currentDecoded['isDeadReport'] = isDeadReport;
-      prefs.setString("currentPlayer", json.encode(currentDecoded));
-      if (mounted) {
-        setState(() {
-          currentPlayer = currentDecoded;
-        });
-      }
+    if (mounted) {
+      setState(() {
+        currentPlayer['isAlive'] = isAlive;
+        currentPlayer['isDeadReport'] = isDeadReport;
+      });
     }
   }
 
@@ -600,17 +595,15 @@ class TaskPageState extends State<TaskPage> {
       print(currentPlayer['isAlive']);
       print(currentPlayer['isDeadReport']);
       print(currentPlayer['isDeadReport'] && !currentPlayer['isAlive']);
-      if (currentPlayer.isNotEmpty) {
-        if (currentPlayer['isAlive']) {
-          playerStatusText = "Vous êtes vivant !";
-          blockTask = false;
-        } else if (currentPlayer['isDeadReport'] && !currentPlayer['isAlive']) {
-          playerStatusText = "Vous êtes un fantome !";
-          blockTask = false;
-        } else {
-          playerStatusText = "Vous êtes mort !";
-          blockTask = true;
-        }
+      if (currentPlayer['isAlive']) {
+        playerStatusText = "Vous êtes vivant !";
+        blockTask = false;
+      } else if (currentPlayer['isDeadReport'] && !currentPlayer['isAlive']) {
+        playerStatusText = "Vous êtes un fantome !";
+        blockTask = false;
+      } else {
+        playerStatusText = "Vous êtes mort !";
+        blockTask = true;
       }
     }
   }

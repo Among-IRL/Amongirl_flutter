@@ -13,8 +13,12 @@ import '../services/socket_io_client.dart';
 
 class VotePage extends StatefulWidget {
   final Map<String, dynamic> game;
+  Map<String, dynamic> currentPlayer;
 
-  VotePage(this.game);
+  VotePage(
+    this.game,
+    this.currentPlayer,
+  );
 
   static const routeName = 'vote';
 
@@ -37,7 +41,6 @@ class VotePageState extends State<VotePage> {
 
   String whoWin = "";
 
-
   // late Timer _timer;
   // int _start = 10;
 
@@ -45,8 +48,9 @@ class VotePageState extends State<VotePage> {
 
   @override
   void initState() {
+    currentPlayer = widget.currentPlayer;
     onSocket();
-    whoIam();
+    // whoIam();
 
     super.initState();
   }
@@ -61,7 +65,7 @@ class VotePageState extends State<VotePage> {
 
   @override
   Widget build(BuildContext context) {
-    if(currentPlayer.isEmpty){
+    if (currentPlayer.isEmpty) {
       return Container();
     }
     final alivePlayers = getAlivePlayers();
@@ -92,24 +96,23 @@ class VotePageState extends State<VotePage> {
                           SizedBox(
                             height: 50,
                             width: MediaQuery.of(context).size.width * 0.8,
-                            child: currentPlayer['isAlive'] ? RadioListTile(
-                              title: Text(player['name']),
-                              value: player,
-                              groupValue: playerVoted,
-                              onChanged: (dynamic value) {
-                                if (isVoted) {
-                                  return;
-                                }
-                                if(mounted) {
-                                  setState(() {
-                                    playerVoted = value;
-                                  });
-                                }
-                              },
-                            )
-                              : ListTile(
-                                title: Text(player['name'])
-                            ),
+                            child: currentPlayer['isAlive']
+                                ? RadioListTile(
+                                    title: Text(player['name']),
+                                    value: player,
+                                    groupValue: playerVoted,
+                                    onChanged: (dynamic value) {
+                                      if (isVoted) {
+                                        return;
+                                      }
+                                      if (mounted) {
+                                        setState(() {
+                                          playerVoted = value;
+                                        });
+                                      }
+                                    },
+                                  )
+                                : ListTile(title: Text(player['name'])),
                           )
                         ],
                       );
@@ -120,21 +123,24 @@ class VotePageState extends State<VotePage> {
                 isVoted
                     ? Text('Vous avez voter pour ${playerVoted['name']}')
                     : Container(),
-                currentPlayer['isAlive'] ?
-                ElevatedButton(
-                  onPressed: !isVoted ? () {
-                    if(mounted) {
-                      setState(() {
-                        isVoted = true;
-                      });
-                    }
-                    socketIoClient.socket.emit('vote', {
-                      'macFrom': currentPlayer['mac'],
-                      'macTo': playerVoted['mac']
-                    });
-                  } : null,
-                  child: Text('VOTER'),
-                ) : Container(),
+                currentPlayer['isAlive']
+                    ? ElevatedButton(
+                        onPressed: !isVoted
+                            ? () {
+                                if (mounted) {
+                                  setState(() {
+                                    isVoted = true;
+                                  });
+                                }
+                                socketIoClient.socket.emit('vote', {
+                                  'macFrom': currentPlayer['mac'],
+                                  'macTo': playerVoted['mac']
+                                });
+                              }
+                            : null,
+                        child: Text('VOTER'),
+                      )
+                    : Container(),
               ],
             ),
           ),
@@ -151,7 +157,6 @@ class VotePageState extends State<VotePage> {
       });
 
       if (data['countDown'] == 0) {
-
         print("dernier countdown = ${data}");
 
         displayDeadPlayerModal(data['vote'], data['count']);
@@ -170,28 +175,39 @@ class VotePageState extends State<VotePage> {
           print("on win pas");
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => TaskPage(data['game'], false)),
+            MaterialPageRoute(
+                builder: (context) =>
+                    TaskPage(data['game'], currentPlayer, false)),
             (Route<dynamic> route) => false,
           );
         }
         socketIoClient.socket.clearListeners();
       }
-
     });
 
-
     socketIoClient.socket.on('deathPlayer', (dataDeath) async {
-      final SharedPreferences prefs = await _prefs;
-      final currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      if(dataDeath["mac"] == currentPlayer['mac']){
-        currentPlayer["isAlive"] = dataDeath["isAlive"];
-        await prefs.setString("currentPlayer", json.encode(currentPlayer));
+      if (dataDeath["mac"] == currentPlayer['mac']) {
+        setState(() {
+          currentPlayer["isAlive"] = dataDeath["isAlive"];
+          currentPlayer["isDeadReport"] = dataDeath["isDeadReport"];
+        });
+        // await prefs.setString("currentPlayer", json.encode(currentPlayer));
+      }
+    });
+
+    socketIoClient.socket.on('deadReport', (data){
+      if (data["macDeadPlayer"] == currentPlayer['mac']) {
+        setState(() {
+          currentPlayer["isAlive"] = false;
+          currentPlayer["isDeadReport"] = true;
+        });
+        // await prefs.setString("currentPlayer", json.encode(currentPlayer));
       }
     });
 
     socketIoClient.socket.on('win', (data) {
       print('data win in vote page=$data');
-      if(mounted) {
+      if (mounted) {
         setState(() {
           win = true;
           whoWin = data;
@@ -200,14 +216,14 @@ class VotePageState extends State<VotePage> {
     });
   }
 
-  Future whoIam() async {
-    final SharedPreferences prefs = await _prefs;
-    if(mounted) {
-      setState(() {
-        currentPlayer = json.decode(prefs.getString("currentPlayer")!);
-      });
-    }
-  }
+  // Future whoIam() async {
+  //   final SharedPreferences prefs = await _prefs;
+  //   if (mounted) {
+  //     setState(() {
+  //       currentPlayer = json.decode(prefs.getString("currentPlayer")!);
+  //     });
+  //   }
+  // }
 
   void setStateIfMounted(f) {
     if (mounted) setState(f);

@@ -31,7 +31,7 @@ class SimonState extends State<Simon> {
 
   String message = "";
 
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  Map<String, dynamic> currentPlayer = {};
 
   String scoreSimon = '';
 
@@ -39,6 +39,7 @@ class SimonState extends State<Simon> {
 
   @override
   void initState() {
+    currentPlayer = widget.currentPlayer;
     startTask();
     super.initState();
   }
@@ -103,7 +104,7 @@ class SimonState extends State<Simon> {
     });
 
     socketIoClient.socket.on('sabotage', (data) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           blur = data;
         });
@@ -129,32 +130,36 @@ class SimonState extends State<Simon> {
     });
 
     socketIoClient.socket.on('report', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('buzzer', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => VotePage(data),
+            builder: (BuildContext context) => VotePage(
+              data,
+              currentPlayer,
+            ),
           ),
         );
       }
     });
 
-    socketIoClient.socket.on('deathPlayer', (data){
-      socketIoClient.socket.emit('stopTask', {
-        'task': widget.task,
-        'player': widget.currentPlayer
-      });
+    socketIoClient.socket.on('deathPlayer', (data) {
+      socketIoClient.socket.emit(
+          'stopTask', {'task': widget.task, 'player': widget.currentPlayer});
 
       updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
 
@@ -162,7 +167,8 @@ class SimonState extends State<Simon> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) =>
+                TaskPage(data['game'], currentPlayer, blur),
           ),
         );
       }
@@ -173,7 +179,11 @@ class SimonState extends State<Simon> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game'], blur),
+            builder: (BuildContext context) => TaskPage(
+              data['game'],
+              currentPlayer,
+              blur,
+            ),
           ),
         );
       }
@@ -186,15 +196,18 @@ class SimonState extends State<Simon> {
   }
 
   updateCurrentPlayer(isAlive, isDeadReport) async {
-    final SharedPreferences prefs = await _prefs;
-    final current = prefs.getString("currentPlayer");
-    if (current != null) {
-      final currentDecoded = json.decode(current);
-      currentDecoded['isAlive'] = isAlive;
-      currentDecoded['isDeadReport'] = isDeadReport;
-      prefs.setString("currentPlayer", json.encode(currentDecoded));
-
+    // final SharedPreferences prefs = await _prefs;
+    // final current = prefs.getString("currentPlayer");
+    // if (current != null) {
+    //   final currentDecoded = json.decode(current);
+    if (mounted) {
+      setState(() {
+        currentPlayer['isAlive'] = isAlive;
+        currentPlayer['isDeadReport'] = isDeadReport;
+      });
     }
+
+    // prefs.setString("currentPlayer", json.encode(currentDecoded));
   }
 
   void startTimer() {
@@ -206,7 +219,7 @@ class SimonState extends State<Simon> {
           print("timer simon done");
 
           socketIoClient.socket.emit("timerTaskDone", {
-            "macPlayer": widget.currentPlayer["mac"],
+            "macPlayer": currentPlayer["mac"],
             "macTask": widget.task["mac"],
             "accomplished": true,
           });
@@ -215,15 +228,14 @@ class SimonState extends State<Simon> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game, blur),
+                builder: (BuildContext context) =>
+                    TaskPage(game, currentPlayer, blur),
               ),
             );
           }
 
-          socketIoClient.socket.emit('stopTask', {
-            'task': widget.task,
-            'player': widget.currentPlayer
-          });
+          socketIoClient.socket
+              .emit('stopTask', {'task': widget.task, 'player': currentPlayer});
 
           timer.cancel();
         } else {
