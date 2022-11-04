@@ -60,18 +60,17 @@ class TaskPageState extends State<TaskPage> {
     getPersonalTasks();
 
     print("ENABLED BACKUP = ${enabledBackup()}");
-    if (!enabledBackup()) {
+    if (enabledBackup()) {
       // _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
       //   await huntWiFis();
       // });
     }
     onSocket();
-
   }
 
   @override
   void dispose() {
-    if (!enabledBackup()) {
+    if(!enabledBackup()) {
       _timer.cancel();
     }
     super.dispose();
@@ -113,7 +112,8 @@ class TaskPageState extends State<TaskPage> {
             setState(() {
               backup = value;
               if (value) {
-                _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
+                _timer =
+                    Timer.periodic(const Duration(seconds: 3), (Timer t) async {
                   await huntWiFis();
                 });
               } else {
@@ -151,7 +151,7 @@ class TaskPageState extends State<TaskPage> {
                 if (currentPlayer['role'] == "player") {
                   return;
                 }
-                if (!backup || Platform.isIOS) {
+                if (enabledBackup()) {
                   _showMyDialog();
                 } else {
                   print("player to kill = ${playerToKill?.SSID}");
@@ -272,7 +272,7 @@ class TaskPageState extends State<TaskPage> {
 
   bool isAccessTask(mac, actualTask) {
     return (!actualTask['accomplished'] &&
-        (isMacNearby(mac) || !enabledBackup()) &&
+        (isMacNearby(mac) || enabledBackup()) &&
         !blockTask);
   }
 
@@ -321,7 +321,10 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socketIoClient.socket.on('report', (data) {
-      if(mounted) {
+      if (mounted) {
+        //FIXME :  Unhandled Exception: Looking up a deactivated widget's ancestor is unsafe.
+        // At this point the state of the widget's element tree is no longer stable.
+        // To safely refer to a widget's ancestor in its dispose() method, save a reference to the ancestor by calling dependOnInheritedWidgetOfExactType() in the widget's didChangeDependencies() method.
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -332,7 +335,7 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socketIoClient.socket.on('sabotage', (data) {
-      if(mounted) {
+      if (mounted) {
         setState(() {
           blur = data;
         });
@@ -348,7 +351,7 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socketIoClient.socket.on('buzzer', (data) {
-      if(mounted) {
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -373,8 +376,6 @@ class TaskPageState extends State<TaskPage> {
   Future whoIam() async {
     // mettre à jout tout le player
 
-
-
     final SharedPreferences prefs = await _prefs;
 
     final current = await prefs.getString("currentPlayer");
@@ -387,7 +388,8 @@ class TaskPageState extends State<TaskPage> {
 
         List<dynamic> playersGame = widget.game["players"];
 
-        final newPlayer = playersGame.firstWhere((p) => p['mac'] == currentP['mac']);
+        final newPlayer =
+            playersGame.firstWhere((p) => p['mac'] == currentP['mac']);
         setState(() {
           currentPlayer = newPlayer;
         });
@@ -477,7 +479,7 @@ class TaskPageState extends State<TaskPage> {
   }
 
   bool enabledBackup() {
-    return backup || Platform.isIOS;
+    return !backup;
   }
 
   List<Widget> allPlayers() {
@@ -602,8 +604,7 @@ class TaskPageState extends State<TaskPage> {
         if (currentPlayer['isAlive']) {
           playerStatusText = "Vous êtes vivant !";
           blockTask = false;
-        }
-        else if (currentPlayer['isDeadReport'] && !currentPlayer['isAlive']) {
+        } else if (currentPlayer['isDeadReport'] && !currentPlayer['isAlive']) {
           playerStatusText = "Vous êtes un fantome !";
           blockTask = false;
         } else {
