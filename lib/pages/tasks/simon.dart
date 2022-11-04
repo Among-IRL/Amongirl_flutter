@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../end_game_page.dart';
+import '../vote_page.dart';
 
 class Simon extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -30,6 +34,8 @@ class SimonState extends State<Simon> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   String scoreSimon = '';
+
+  bool blur = false;
 
   @override
   void initState() {
@@ -68,6 +74,12 @@ class SimonState extends State<Simon> {
                 ],
               ),
             ),
+            BackdropFilter(
+              filter: blur
+                  ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
+                  : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
+              child: Container(),
+            ),
           ],
         ),
       ),
@@ -80,29 +92,77 @@ class SimonState extends State<Simon> {
       scoreSimon = data;
     });
 
+    socketIoClient.socket.on('win', (data) {
+      print('WIN');
+      if (mounted) {
+        print("mounted = $mounted");
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => EndGamePage(data)),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('sabotage', (data) {
+      if(mounted) {
+        setState(() {
+          blur = data;
+        });
+      }
+    });
+
+    socketIoClient.socket.on('taskCompletedDesabotage', (data) {
+      if (mounted) {
+        setState(() {
+          blur = false;
+        });
+      }
+    });
+
     socketIoClient.socket.on('taskCompletedSimon', (data) {
       if (mounted) {
         setState(() {
           message =
               "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
-          game = data;
+          game = data['game'];
         });
       }
     });
 
-    socketIoClient.socket.on('deathPlayer', (data){
-      if(data['mac'] == widget.currentPlayer['mac']) {
-        socketIoClient.socket.emit('stopTask', {
-          'task': widget.task,
-          'player': widget.currentPlayer
-        });
-
-        updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
-
+    socketIoClient.socket.on('report', (data) {
+      if(mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game']),
+            builder: (BuildContext context) => VotePage(data),
+          ),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('buzzer', (data) {
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => VotePage(data),
+          ),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('deathPlayer', (data){
+      socketIoClient.socket.emit('stopTask', {
+        'task': widget.task,
+        'player': widget.currentPlayer
+      });
+
+      updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(data['game'], blur),
           ),
         );
       }
@@ -113,7 +173,7 @@ class SimonState extends State<Simon> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game']),
+            builder: (BuildContext context) => TaskPage(data['game'], blur),
           ),
         );
       }
@@ -155,7 +215,7 @@ class SimonState extends State<Simon> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game),
+                builder: (BuildContext context) => TaskPage(game, blur),
               ),
             );
           }

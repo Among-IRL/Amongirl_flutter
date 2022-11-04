@@ -25,8 +25,9 @@ import 'end_game_page.dart';
 
 class TaskPage extends StatefulWidget {
   final Map<String, dynamic> game;
+  late final bool toto;
 
-  TaskPage(this.game);
+  TaskPage(this.game, this.toto);
 
   static const routeName = 'task';
 
@@ -40,9 +41,9 @@ class TaskPageState extends State<TaskPage> {
   SocketIoClient socketIoClient = SocketIoClient();
   List<dynamic> personalTasks = [];
   Map<String, dynamic> currentPlayer = {};
-  bool blur = false;
   bool blockTask = false;
   String playerStatusText = "Vous êtes vivant !";
+  late bool blur;
 
   List<dynamic> alivePlayers = [];
 
@@ -52,18 +53,20 @@ class TaskPageState extends State<TaskPage> {
 
   @override
   void initState() {
+    super.initState();
+    blur = widget.toto;
     getAlivePlayers(widget.game['players']);
     whoIam();
     getPersonalTasks();
 
     print("ENABLED BACKUP = ${enabledBackup()}");
     if (!enabledBackup()) {
-      _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
-        await huntWiFis();
-      });
+      // _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
+      //   await huntWiFis();
+      // });
     }
     onSocket();
-    super.initState();
+
   }
 
   @override
@@ -109,6 +112,13 @@ class TaskPageState extends State<TaskPage> {
             // This is called when the user toggles the switch.
             setState(() {
               backup = value;
+              if (value) {
+                _timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
+                  await huntWiFis();
+                });
+              } else {
+                _timer.cancel();
+              }
             });
           },
         ),
@@ -141,7 +151,7 @@ class TaskPageState extends State<TaskPage> {
                 if (currentPlayer['role'] == "player") {
                   return;
                 }
-                if (backup || Platform.isIOS) {
+                if (!backup || Platform.isIOS) {
                   _showMyDialog();
                 } else {
                   print("player to kill = ${playerToKill?.SSID}");
@@ -262,7 +272,7 @@ class TaskPageState extends State<TaskPage> {
 
   bool isAccessTask(mac, actualTask) {
     return (!actualTask['accomplished'] &&
-        (isMacNearby(mac) || enabledBackup()) &&
+        (isMacNearby(mac) || !enabledBackup()) &&
         !blockTask);
   }
 
@@ -301,21 +311,17 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socketIoClient.socket.on('win', (data) {
+      print('WIN');
       if (mounted) {
         print("mounted = $mounted");
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => EndGamePage(data)),
-          );
-        });
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => EndGamePage(data)),
+        );
       }
     });
 
     socketIoClient.socket.on('report', (data) {
-      //fixme context existe plus
-      print("IS MOUNTED DANS LE REPORT ?? ${mounted}");
       if(mounted) {
-        print("on va push la !!!!");
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -326,24 +332,30 @@ class TaskPageState extends State<TaskPage> {
     });
 
     socketIoClient.socket.on('sabotage', (data) {
-      setState(() {
-        blur = data;
-      });
+      if(mounted) {
+        setState(() {
+          blur = data;
+        });
+      }
     });
 
     socketIoClient.socket.on('taskCompletedDesabotage', (data) {
-      setState(() {
-        blur = false;
-      });
+      if (mounted) {
+        setState(() {
+          blur = false;
+        });
+      }
     });
 
     socketIoClient.socket.on('buzzer', (data) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => VotePage(widget.game),
-        ),
-      );
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => VotePage(widget.game),
+          ),
+        );
+      }
     });
 
     socketIoClient.socket.on('deathPlayer', (data) {
@@ -583,16 +595,21 @@ class TaskPageState extends State<TaskPage> {
   getPlayerStatus() {
     print("je passe ici");
     if (currentPlayer.isNotEmpty) {
-      if (currentPlayer['isAlive']) {
-        playerStatusText = "Vous êtes vivant !";
-        blockTask = false;
-      }
-      else if (currentPlayer['isDeadReport'] && !currentPlayer['isAlive']) {
-        playerStatusText = "Vous êtes un fantome !";
-        blockTask = false;
-      } else {
-        playerStatusText = "Vous êtes mort !";
-        blockTask = true;
+      print(currentPlayer['isAlive']);
+      print(currentPlayer['isDeadReport']);
+      print(currentPlayer['isDeadReport'] && !currentPlayer['isAlive']);
+      if (currentPlayer.isNotEmpty) {
+        if (currentPlayer['isAlive']) {
+          playerStatusText = "Vous êtes vivant !";
+          blockTask = false;
+        }
+        else if (currentPlayer['isDeadReport'] && !currentPlayer['isAlive']) {
+          playerStatusText = "Vous êtes un fantome !";
+          blockTask = false;
+        } else {
+          playerStatusText = "Vous êtes mort !";
+          blockTask = true;
+        }
       }
     }
   }

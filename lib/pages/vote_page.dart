@@ -170,7 +170,7 @@ class VotePageState extends State<VotePage> {
           print("on win pas");
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => TaskPage(data['game'])),
+            MaterialPageRoute(builder: (context) => TaskPage(data['game'], false)),
             (Route<dynamic> route) => false,
           );
         }

@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:amoungirl/pages/task_page.dart';
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../end_game_page.dart';
+import '../vote_page.dart';
 
 class SwipeCard extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -31,6 +35,8 @@ class SwipeCardState extends State<SwipeCard> {
   late Timer _timer;
   int _start = 10;
 
+  bool blur = false;
+
   @override
   void initState() {
     startTask();
@@ -55,14 +61,46 @@ class SwipeCardState extends State<SwipeCard> {
             Text("Veuillez confirmer votre identité"),
             Text("Temps restant : $_start"),
             Text(message),
+            BackdropFilter(
+              filter: blur
+                  ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
+                  : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
+              child: Container(),
+            ),
           ],
         ),
       ),
     );
   }
 
-  void startTask() {
+  Future<void> startTask() async {
     startTimer();
+
+    socketIoClient.socket.on('win', (data) {
+      print('WIN');
+      if (mounted) {
+        print("mounted = $mounted");
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => EndGamePage(data)),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('sabotage', (data) {
+      if(mounted) {
+        setState(() {
+          blur = data;
+        });
+      }
+    });
+
+    socketIoClient.socket.on('taskCompletedDesabotage', (data) {
+      if (mounted) {
+        setState(() {
+          blur = false;
+        });
+      }
+    });
 
     socketIoClient.socket.on("taskCompletedTaskCardSwip", (data) {
       print("DATA tasks completed task card swipe ${data["game"]}");
@@ -77,22 +115,45 @@ class SwipeCardState extends State<SwipeCard> {
       }
     });
 
-    socketIoClient.socket.on('deathPlayer', (data){
-      if(data['mac'] == widget.currentPlayer['mac']) {
-        socketIoClient.socket.emit('stopTask', {
-          'task': widget.task,
-          'player': widget.currentPlayer
-        });
-
-        updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
-
+    socketIoClient.socket.on('report', (data) {
+      if(mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game']),
+            builder: (BuildContext context) => VotePage(data),
           ),
         );
       }
+    });
+
+    socketIoClient.socket.on('buzzer', (data) {
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => VotePage(data),
+          ),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('deathPlayer', (data){
+      socketIoClient.socket.emit('stopTask', {
+        'task': widget.task,
+        'player': widget.currentPlayer
+      });
+
+      updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => TaskPage(data['game'], blur),
+          ),
+        );
+      }
+
     });
 
     socketIoClient.socket.on('taskNotComplete', (data) {
@@ -100,7 +161,7 @@ class SwipeCardState extends State<SwipeCard> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game']),
+            builder: (BuildContext context) => TaskPage(data['game'], blur),
           ),
         );
       }
@@ -142,7 +203,7 @@ class SwipeCardState extends State<SwipeCard> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game),
+                builder: (BuildContext context) => TaskPage(game, blur),
               ),
             );
           }

@@ -52,7 +52,7 @@ class RoleAllocationPageState extends State<RoleAllocationPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (BuildContext context) => TaskPage(widget.game),
+              builder: (BuildContext context) => TaskPage(widget.game, false),
             ),
           );
 

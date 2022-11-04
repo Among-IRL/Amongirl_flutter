@@ -124,7 +124,7 @@ class DeathPlayerPageState extends State<DeathPlayerPage> {
                         onPressed: () {
                           Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (context) => TaskPage(widget.game)),
+                            MaterialPageRoute(builder: (context) => TaskPage(widget.game, false)),
                                 (Route<dynamic> route) => false,
                           );
 

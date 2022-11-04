@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:amoungirl/services/socket_io_client.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,7 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../end_game_page.dart';
 import '../task_page.dart';
+import '../vote_page.dart';
 
 class QrCode extends StatefulWidget {
   final Map<String, dynamic> task;
@@ -37,6 +40,8 @@ class QrCodeState extends State<QrCode> {
 
   late Timer _timer;
   int _start = 10;
+
+  bool blur = false;
 
   @override
   void reassemble() {
@@ -102,7 +107,13 @@ class QrCodeState extends State<QrCode> {
                       ],
                     ),
             ),
-          )
+          ),
+          BackdropFilter(
+            filter: blur
+                ? ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0)
+                : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
+            child: Container(),
+          ),
         ],
       ),
     );
@@ -137,7 +148,33 @@ class QrCodeState extends State<QrCode> {
         setState(() {
           message =
               "Tâche accomplie ! Veuillez rester le temps que le timer se termine";
-          game = data;
+          game = data['game'];
+        });
+      }
+    });
+
+    socketIoClient.socket.on('win', (data) {
+      print('WIN');
+      if (mounted) {
+        print("mounted = $mounted");
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => EndGamePage(data)),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('sabotage', (data) {
+      if(mounted) {
+        setState(() {
+          blur = data;
+        });
+      }
+    });
+
+    socketIoClient.socket.on('taskCompletedDesabotage', (data) {
+      if (mounted) {
+        setState(() {
+          blur = false;
         });
       }
     });
@@ -147,29 +184,50 @@ class QrCodeState extends State<QrCode> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game']),
+            builder: (BuildContext context) => TaskPage(data['game'], blur),
+          ),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('report', (data) {
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => VotePage(data),
+          ),
+        );
+      }
+    });
+
+    socketIoClient.socket.on('buzzer', (data) {
+      if(mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => VotePage(data),
           ),
         );
       }
     });
 
     socketIoClient.socket.on('deathPlayer', (data){
-      if(data['mac'] == widget.currentPlayer['mac']) {
-        socketIoClient.socket.emit('stopTask', {
-          'task': widget.task,
-          'player': widget.currentPlayer
-        });
+      socketIoClient.socket.emit('stopTask', {
+        'task': widget.task,
+        'player': widget.currentPlayer
+      });
 
-        updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
+      updateCurrentPlayer(data['isAlive'], data['isDeadReport']);
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (BuildContext context) => TaskPage(data['game']),
-          ),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => TaskPage(data['game'], blur),
+        ),
+      );
     });
+
 
     socketIoClient.socket.emit(
       "startTask",
@@ -210,7 +268,7 @@ class QrCodeState extends State<QrCode> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (BuildContext context) => TaskPage(game),
+                builder: (BuildContext context) => TaskPage(game, blur),
               ),
             );
           }
